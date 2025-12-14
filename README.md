@@ -38,3 +38,4 @@ Resources, Archives).
 - **REUSE Compliant**: This website, all of it's source code, posts, media, etc.
   is REUSE Compliant. For more information please check [REUSE
   software](https://reuse.software/).
+
