@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2025 NONE
+#
+# SPDX-License-Identifier: CC0-1.0
+
+.DS_Store
+.idea
+*.log
+tmp/
+deploy.sh
+website/vendor/bundle
+website/vendor/bundle/*
+website/vendor/bundle/**
+me2.txt
+website/_site/
+website/_site/*
+website/_site/**

@@ -1,0 +1,12 @@
+<footer style="display: flex; justify-content: space-between; align-items: center; padding: 20px; margin-top: 40px; border-top: 1px solid #ccc; color: #666; font-size: 10px;">
+<div>
+  {% if site.active_lang == 'es' %}
+  <p style="margin: 0;">A menos que se indique lo contrario, el contenido del sitio web está bajo la licencia <a href="https://creativecommons.org/licenses/by/4.0/deed.es" target="_blank">Creative Commons Atribución/Reconocimiento 4.0 Internacional</a>.</p>
+  {% elsif site.active_lang == 'zh_TW' %}
+  <p style="margin: 0;">除非另有說明，否則本網站的內容均根據 <a href="https://creativecommons.org/licenses/by/4.0/deed.zh-hant" target="_blank">知識共享姓名標示 4.0 國際</a> 授權協議獲得許可。</p>
+  {% else %}
+  <p style="margin: 0;">Unless stated otherwise, the content of the website is licensed under a <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">Creative Commons Attribution 4.0 International</a> license.</p>
+  {% endif %}
+<p style="margin: 0;">© 2025 Germán Caggianese（康青旭）</p>
+</div>
+</footer>

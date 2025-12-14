@@ -1,0 +1,99 @@
+---
+layout: post
+title: "Advent of Code 2025 - Day 2"
+date: 2025-12-08 19:05:47 -0300
+lang: en
+project-aoc2025: true
+permalink: /project/aoc2025d2.html
+---
+
+# Puzzle [Day 2: Gift Shop](https://adventofcode.com/2025/day/2)
+
+-   Values II-FF separated by comma, where II means initial range and FF
+    the final (both included).
+
+## Input Structure
+
+-   No leading 0
+-   II \< FF
+-   II is separated by - from FF
+-   **Invalid IDs**:
+    -   Reapeating patterns in the range
+        -   Ej. 11-22: $\forall x \in [11,22] \cap \mathbb{N}^+$, here
+            is easy to see that the only repeating pair of patterns are
+            11 and 22.
+        -   Ej. 11-33: $\forall x \in [11,33] \cap \mathbb{N}^+$, the
+            repeating patterns now include 33 \[11, 22, 33\].
+    -   **Odd-length** numbers are **ALWAYS valid**
+        -   111 → 3 digits → can't split in pairs (valid)
+        -   22022 → 5 digits → same (valid)
+
+### Even palindromic numbers:
+
+-   The approach will be to recognize that "invalid IDs" are numbers
+    that can be expressed as two identical parts
+-   We can generate them by the formula:
+    $\text{Invalid} = d \times (10^n + 1)$ where:
+    -   **n** is half the number of digits
+    -   **d** is an n-digit base number
+
+1.  Mathematics behind:
+
+    -   For a 2n-digit number to be "invalid", is easy, just
+        $\text{left-part} = \text{right-part}$.
+    -   This can be expressed as: $\text{number} = d \times 10^n + d$
+        $\text{number} = d(10^n + 1)$
+    -   Where d is the n-digit "base" that repeats.
+
+2.  Examples by digits:
+
+    1.  2 digits (n=1):
+
+        -   This case is elemental, just 11 multiples.
+
+    2.  4 digits (n=2):
+
+        -   Multiplier: $10^2 + 1 = 101$
+        -   Valid d values: ${10, 11, ..., 99}$
+        -   Invalid IDs: $1010, 1111, 1212, ..., 9999$
+        -   Ex.: $1111 = 11 × 101$
+
+    3.  6 digits (n=3):
+
+        -   … same logic as n=2 …
+
+    4.  8 digits (n=4):
+
+        -   … same logic as n=3 …
+
+    5.  10 digits (n=5):
+
+        -   Multiplier: $10^5 + 1 = 100001$
+        -   Valid d values: ${10000, 10001, ..., 99999}$
+        -   Ex.: $1188511885 = 11885 × 100001$
+
+3.  Detection Algorithm:
+
+    For any given `value`:
+
+    1.  Calculate digit count:
+        $\text{digits} = \lfloor \log_{10}(\text{value}) \rfloor + 1$
+    2.  Check if even:
+        $\text{digits} \equiv 1 \pmod{2} \implies \text{valid (skip)}$
+    3.  Calculate the multiplier:
+        $M = 10^{n} + 1 \quad \text{where} \quad n = \frac{\text{digits}}{2}$
+    4.  Test divisibility:
+        $\text{value} \equiv 0 \pmod{M} \implies \text{invalid}$
+
+4.  Odd-digit numbers are always valid:
+
+    -   Any number with odd digits cannot be split into two parts
+    -   Ex.: 111, 212, 11011 all have 3 or 5 digits
+    -   There's no way to express them as
+        $d \times (10^n + 1)\quad \text{where}\ n = \frac{\text{digits}}{2}$
+    -   Therefore **all odd-digit numbers are valid**.
+
+5.  Then:
+
+    -   No need to check each digit manually
+    -   Time complexity: O(1) per number

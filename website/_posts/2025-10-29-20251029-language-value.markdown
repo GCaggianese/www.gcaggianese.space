@@ -1,0 +1,42 @@
+---
+layout: post
+title: "功課 — 用不熟的生詞造句"
+date: 2025-10-29 16:43:28 -0300
+lang: zh_TW
+area-gyk: true
+permalink: /area/20251029.html
+---
+
+# 第三課對話一的生詞練習p.53 (用不熟的生詞造句)
+
+## 新單詞
+
+| 單詞 | 英文                          | 注音            |
+|------|-------------------------------|-----------------|
+| 不錯 | Not bad                       | ㄅㄨˊ ㄘㄨㄛˋ   |
+| 念   | To study                      | ㄋㄧㄢˋ         |
+| 多久 | How long? / (not) a long time | ㄉㄨㄛ ㄐㄧㄡˇ  |
+| 才   | A moment ago / just           | ㄘㄞˊ           |
+| 不夠 | Not enough / insufficient     | ㄅㄨˊ ㄍㄡˋ     |
+| 流利 | Fluent                        | ㄌㄧㄡˊ ㄌㄧˋ   |
+| 環境 | Environment                   | ㄏㄨㄢˊ ㄐㄧㄥˇ |
+| 同意 | Agree / Approve               | ㄊㄨㄥˊ ㄧˋ     |
+| 希望 | Hope / Wish / Expect          | ㄒㄧ ㄨㄤˋ      |
+| 報紙 | Newspaper                     | ㄅㄠˋ ㄓˇ       |
+| 一定 | Certainly / Surely            | ㄧ ㄉㄧㄥˋ      |
+| 交換 | Exchange / Swap               | ㄐㄧㄠ ㄏㄨㄢˋ  |
+| 演講 | Speech / Lecture              | ㄧㄢˇ ㄐㄧㄤˇ   |
+| 持續 | To continue / To last         | ㄔˊ ㄒㄩˋ       |
+| 無聊 | Boring                        | ㄨˊ ㄌㄧㄠˊ     |
+| 進步 | Improve / Advance             | ㄐㄧㄣˋ ㄅㄨˋ   |
+
+## 造句
+
+-   妳的皮卡丘不錯，你想交換嗎？
+-   我不喜歡看報紙，因為一定沒有好消息。
+-   我想這個很熱的天氣會持續多久，對環境不好。
+-   我同意，昨天的演講很無聊。
+-   我希望我的中文流利進步。
+-   你在哪裡？老師告訴我你剛才在超市入口。
+-   我和我的女朋友正在念大學；她念心理學，我念工程學。
+-   我知道我的狗覺得我們走得不夠多。

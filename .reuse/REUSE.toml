@@ -1,0 +1,209 @@
+# SPDX-FileCopyrightText: 2025 Germán Caggianese（康青旭）<german.caggianese@pm.me>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+version = 1
+
+[[annotations]]
+path = [
+".reuse/REUSE.toml",
+"Gemfile",
+"_config.yml",
+"_config-web.yml",
+"_config-test.yml",
+"_data/navigation.yml",
+"_includes/disqus_comments.html",
+"_includes/gallery",
+"_includes/head.html",
+"_includes/meta.html",
+"_includes/nav.html",
+"_includes/read-time.html",
+"_includes/scripts.html",
+"_includes/social-links.html",
+"_layouts/404.html",
+"_layouts/compress.html",
+"_layouts/home.html",
+"_layouts/page.html",
+"_layouts/post-list.html",
+"_layouts/post.html",
+"_layouts/project.html",
+"_sass/elements.scss",
+"_sass/mixins.scss",
+"_sass/nav.scss",
+"_sass/normalize.scss",
+"_sass/print.scss",
+"_sass/site.scss",
+"_sass/syntax.scss",
+"_sass/typography.scss",
+"_sass/variables.scss",
+"_sass/vendor/animate.scss",
+"_sass/vendor/font-awesome.scss",
+"_sass/vendor/font-awesome/_animated.scss",
+"_sass/vendor/font-awesome/_bordered-pulled.scss",
+"_sass/vendor/font-awesome/_core.scss",
+"_sass/vendor/font-awesome/_fixed-width.scss",
+"_sass/vendor/font-awesome/_icons.scss",
+"_sass/vendor/font-awesome/_larger.scss",
+"_sass/vendor/font-awesome/_list.scss",
+"_sass/vendor/font-awesome/_mixins.scss",
+"_sass/vendor/font-awesome/_path.scss",
+"_sass/vendor/font-awesome/_rotated-flipped.scss",
+"_sass/vendor/font-awesome/_screen-reader.scss",
+"_sass/vendor/font-awesome/_stacked.scss",
+"_sass/vendor/font-awesome/_variables.scss",
+"_sass/vendor/fonts.scss",
+"_sass/vendor/magnific-popup/_settings.scss",
+"_sass/vendor/magnific-popup/magnific-popup.scss",
+"assets/css/main.scss",
+"assets/img/favicons/apple-icon-114x114.png",
+"assets/img/favicons/apple-icon-144x144.png",
+"assets/img/favicons/apple-icon-72x72.png",
+"assets/img/favicons/apple-icon-precomposed.png",
+"assets/img/logo.png",
+"assets/img/moonrise-background.jpg",
+"assets/js/jquery-1.12.0.min.js",
+"assets/js/jquery.dlmenu.min.js",
+"assets/js/jquery.fitvid.min.js",
+"assets/js/jquery.goup.min.js",
+"assets/js/jquery.magnific-popup.min.js",
+"assets/js/modernizr-3.3.1.custom.min.js",
+"assets/js/scripts.js",
+"assets/js/wow.min.js",
+"favicon.ico",
+"favicon.png",
+"index.html",
+"posts/index.markdown",
+"projects/index.markdown",
+"robots.txt",
+"sitemap.xml",
+"tags/index.html"
+]
+copyright = "Tolga Tatlı"
+year = "2024"
+license = "Apache-2.0"
+
+[[annotations]]
+path = [
+".gitignore",
+"manifest.scm",
+".bundle/config",
+".direnv/aliases/build",
+".direnv/aliases/configure",
+".direnv/aliases/push",
+".envrc",
+"website/.bundle/config",
+"website/Gemfile.lock",
+"website/assets/img/banner.png",
+"website/assets/img/favicons/archie.png",
+"website/assets/img/flags/tw.png",
+"website/assets/img/flags/uk.png",
+"website/assets/img/flags/uy.png",
+"website/assets/img/kai.png",
+"website/assets/map.jpg",
+"website/assets/img/logo.png",
+"website/assets/Notes_251019_003746_c6f.jpg",
+"website/assets/Notes_251019_003754_d3b.jpg",
+"website/assets/Notes_251019_003758_5df.jpg",
+"website/assets/Notes_251019_003802_135.jpg",
+"website/assets/codeberg.png",
+"website/assets/codeberg_catppuccin.png"
+]
+SPDX-FileCopyrightText = "NONE"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = [
+"assets/fonts/FontAwesome/**"
+]
+
+copyright = "Fonticons, Inc. (https://fontawesome.com)"
+year = "2025"
+license = "OFL-1.1"
+
+[[annotations]]
+path = [
+"assets/fonts/FiraSans/**"
+]
+
+copyright = "Erik Spiekerman and Ralph du Carrois"
+year = "2014"
+license = "OFL-1.1"
+
+[[annotations]]
+path = [
+"website/_posts/**",
+"website/about.es.markdown",
+"website/about.markdown",
+"website/areas/index.markdown",
+"website/es/index.markdown",
+"website/index.markdown",
+"website/posts/index.markdown",
+"website/projects/index.markdown",
+"website/resources/index.markdown",
+"website/zh_TW/index.markdown",
+"website/README.md"
+]
+copyright = "Germán Caggianese（康青旭）"
+year = "2025"
+license = "CC-BY-4.0"
+
+[[annotations]]
+path = [
+"test.sh",
+"website/Gemfile",
+"website/_config-test.yml",
+"website/_config-web.yml",
+"website/_config.yml",
+"website/_data/navigation.yml",
+"website/_includes/disqus_comments.html",
+"website/_includes/gallery",
+"website/_includes/head.html",
+"website/_includes/meta.html",
+"website/_includes/nav.html",
+"website/_includes/read-time.html",
+"website/_includes/scripts.html",
+"website/_includes/social-links.html",
+"website/_layouts/404.html",
+"website/_layouts/404.html.bak",
+"website/_layouts/area.html",
+"website/_layouts/area.html.bak",
+"website/_layouts/area_ASSI.html",
+"website/_layouts/area_ASSI.html.bak",
+"website/_layouts/area_CS.html",
+"website/_layouts/area_CS.html.bak",
+"website/_layouts/area_DA.html",
+"website/_layouts/area_DA.html.bak",
+"website/_layouts/area_ML.html",
+"website/_layouts/area_ML.html.bak",
+"website/_layouts/area_SCIENCE.html",
+"website/_layouts/area_SCIENCE.html.bak",
+"website/_layouts/area_category.html",
+"website/_layouts/area_category.html.bak",
+"website/_layouts/compress.html",
+"website/_layouts/compress.html.bak",
+"website/_layouts/home.html",
+"website/_layouts/home.html.bak",
+"website/_layouts/page.html",
+"website/_layouts/page.html.bak",
+"website/_layouts/post-list.html",
+"website/_layouts/post-list.html.bak",
+"website/_layouts/post.html",
+"website/_layouts/post.html.bak",
+"website/_layouts/project.html",
+"website/_layouts/project.html.bak",
+"website/_layouts/replace_home.sh",
+"website/_layouts/resource.html",
+"website/_layouts/resource.html.bak",
+"website/_layouts/resource_python.html",
+"website/_layouts/resource_python.html.bak",
+"website/_sass/elements.scss",
+"website/_sass/nav.scss",
+"website/_sass/site.scss",
+"website/_sass/syntax.scss",
+"website/_sass/variables.scss",
+"website/assets/css/main.scss",
+"website/sitemap.xml"
+]
+copyright = "Germán Caggianese（康青旭）"
+year = "2025"
+license = "Apache-2.0"

@@ -1,0 +1,98 @@
+---
+layout: compress
+---
+<!DOCTYPE html>
+
+<head>
+    {% include head.html %}
+</head>
+
+<body>
+    {% include nav.html %}
+    <!-- Header -->
+    <header class="header flex" role="banner">
+        <div class="container animated fadeIn">
+            <div class="row">
+                <a href="{{ site.url }}">
+                    <img src="{{ site.logo }}" class="img-circle zoombtn animated rotateIn">
+                </a>
+                <h3 class="title">
+                    <a class="zoombtn" href="{{ site.url }}">
+                        <p style="font-size:1.2rem;font-weight:300">{{ site.title }}</p>
+                    </a>
+                </h3>
+                <hr class="hr-line">
+                <h3 class="title">
+                    <a href="{{ site.url }}/about">
+                        <p style="font-size:1rem;font-weight:300">{{ site.bio }}</p>
+                    </a>
+                </h3>
+                <hr class="hr-line">
+                <h3 class="title">
+                    <a class="btn zoombtn" href="{{ site.url }}/projects">
+                        {% if site.active_lang == 'es' %}
+                        Proyectos
+                        {% elsif site.active_lang == 'zh_TW' %}
+                        專案
+                        {% else %}
+                        Projects
+                        {% endif %}
+                    </a>
+                    <a class="btn zoombtn" href="{{ site.url }}/areas">
+                        {% if site.active_lang == 'es' %}
+                        Áreas
+                        {% elsif site.active_lang == 'zh_TW' %}
+                        領域
+                        {% else %}
+                        Areas
+                        {% endif %}
+                    </a>
+                    <a class="btn zoombtn" href="{{ site.url }}/resources">
+                        {% if site.active_lang == 'es' %}
+                        Recursos
+                        {% elsif site.active_lang == 'zh_TW' %}
+                        資源
+                        {% else %}
+                        Resources
+                        {% endif %}
+                    </a>
+                </h3>
+                <h3 class="title">
+                    <a class="btn zoombtn" href="{{ site.url }}/posts">
+                        {% if site.active_lang == 'es' %}
+                        Publicaciones
+                        {% elsif site.active_lang == 'zh_TW' %}
+                        貼文
+                        {% else %}
+                        Posts
+                        {% endif %}
+                    </a>
+                </h3>
+                <h3 class="title">
+                <div style="display: flex; justify-content: center; align-items: center; gap: 14px; margin: 0px 20px 0px 0px;">
+                    {% include social-links.html %}
+                </div>
+                </h3>
+<div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 1rem;">
+    <div style="text-align: left;">
+        <a href="{{ site.url }}/about" style="font-size: 0.7em; font-weight:300; color: LightSteelBlue;">About</a>
+    </div>
+
+    <div class="language-switcher" style="text-align: right;">
+        <a href="{{ site.url }}" title="English" class="btn zoombtn lang-btn">
+            <img src="{{ site.url }}/assets/img/flags/uk.png" alt="English" style="width:24px;height:auto;">
+        </a>
+        <a href="{{ site.url }}/es{{ page.url }}" title="Español" class="btn zoombtn lang-btn">
+            <img src="{{ site.url }}/assets/img/flags/uy.png" alt="Español" style="width:24px;height:auto;">
+        </a>
+        <a href="{{ site.url }}/zh_TW{{ page.url }}" title="中文" class="btn zoombtn lang-btn">
+            <img src="{{ site.url }}/assets/img/flags/tw.png" alt="中文" style="width:24px;height:auto;">
+        </a>
+    </div>
+</div>
+            </div>
+        </div>
+    </header>
+    {% include scripts.html %}
+</body>
+</html>

@@ -1,0 +1,9 @@
+{% assign wpm = site.words_per_minute | default: 200 %}
+{% assign clean_content = content | strip_html | strip_newlines | replace: " ", "" %}
+
+{% comment %} Count characters instead of words {% endcomment %}
+{% assign char_count = clean_content | size %}
+
+{% comment %} Adjust calculation for character-based reading {% endcomment %}
+{% assign readtime = char_count | divided_by: wpm | at_least: 1 %}
+Reading time ~{{ readtime }} minute{% if readtime != 1 %}s{% endif %}

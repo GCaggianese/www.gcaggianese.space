@@ -1,0 +1,112 @@
+---
+layout: post
+title: "Advent of Code 2025 - Day 1"
+date: 2025-12-03 20:46:39 -0300
+lang: en
+project-aoc2025: true
+permalink: /project/aoc2025d1.html
+---
+
+# Puzzle [Day 1 - Advent of Code](https://adventofcode.com/2025/day/1)
+
+-   dial from 00 to 99 (NN), makes a **click** when reaching each
+    number.
+    -   This means 100 possible values to wrap around.
+
+## Input Structure
+
+-   Sequence of **rotations** (1 per line)
+
+    -   `L` → Rotation to lower numbers
+    -   `R` → Rotation to higher numbers
+
+-   Wrap it with %, as C++ → use [modular arithmetic
+    (Gauss)](https://en.wikipedia.org/wiki/Modular_arithmetic) with
+    floored division convention
+
+-   `NN` → number of rotations.
+
+-   You start from 50.
+
+# Solution using C++ STD 20
+
+-   Meson is there just because I was learning it right before AoC. You
+    can just `g++ src/main.cpp -o aoc-2020-d1` or whatever you feel like
+    doing.
+-   I actually just used `org-babbel` to solve it.
+
+- **Github link:** [GCaggianese/AoC-2025](https://github.com/GCaggianese/AoC-2025/tree/master/D1)
+- **Codeberg link:** [GCaggianese/AoC-2025](https://codeberg.org/GCaggianese/AoC-2025/src/branch/master/D1)
+
+```
+    ...
+    R31
+    Dial position: 86
+    R25
+    Dial position: 11
+    Clicks: 1129
+```
+
+Correct answer\~! 🌟+1
+
+------------------------------------------------------------------------
+
+
+    int dial = 50;
+    int clicker = 0;
+
+    template <typename T> T floor_mod(T a, T b) {
+        return a - b * std::floor(static_cast<double>(a) / static_cast<double>(b));
+    }
+
+    void fright(int r) { dial = floor_mod((dial + r), 100); }
+
+    void fleft(int l) { dial = floor_mod((dial - l), 100); }
+
+    void click() {
+        if (dial == 0) {
+            clicker += 1;
+        }
+    }
+
+    void parse_file(std::string_view filepath) {
+        std::ifstream file(filepath.data());
+
+        for (std::string line; std::getline(file, line);) {
+            if (line.empty())
+                continue;
+
+            char direction = line[0];
+
+            int value = 0;
+            auto [ptr, ec] =
+                std::from_chars(line.data() + 1, line.data() + line.size(), value);
+
+            if (ec == std::errc{}) { // Success
+                std::cout << line << '\n';
+
+                if (direction == 'L') {
+                    fleft(value);
+                    click();
+                    std::cout << "Dial position: " << dial << "\n";
+                } else if (direction == 'R') {
+                    fright(value);
+                    click();
+                    std::cout << "Dial position: " << dial << "\n";
+                }
+            }
+            if (ec != std::errc{}) { // Fail
+                std::cerr << "Parse error on line: " << line << '\n';
+                continue;
+            }
+        }
+    }
+
+    int main(){
+
+        std::cout << "Hey AoC 2025!\n\n";
+        parse_file("input_test.txt");
+        std::cout << "Clicks: " << clicker << "\n";
+
+        return 0;
+    }

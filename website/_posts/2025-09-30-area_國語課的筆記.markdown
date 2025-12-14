@@ -1,0 +1,10 @@
+---
+layout: area_國語課
+area: true
+title: "國語課的筆記"
+date: 2025-09-30 11:00:00 +0300
+categories: area 國語 notes
+lang: zh_TW 
+permalink: /areas/國語課的筆記.html
+---
+這是我的國語課的筆記。

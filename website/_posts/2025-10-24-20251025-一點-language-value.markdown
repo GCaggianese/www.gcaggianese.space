@@ -1,0 +1,26 @@
+---
+layout: post
+title: "Adverbials with 一點"
+date: 2025-10-24 23:19:37 -0300
+lang: zh_TW
+area-gyk: true
+permalink: /area/20251025-一點.html
+---
+
+# Form Adverbials with 一點
+
+-   Combining state verbs with 一點 you can form adverbials that modify
+    actions. This pattern is used in imperatives.
+
+## 功課： 10句 Ｖ一點
+
+1.  你太吵了！安靜一點。
+2.  我們要來不及了！快一點。
+3.  我聽不懂！說慢一點。
+4.  我聽不到！說大聲一點。
+5.  我們要去一個派對，穿好看一點。
+6.  她會晚一點到。
+7.  你會早一點到嗎？
+8.  你好一點了嗎？
+9.  太冷了！我要穿多一點。
+10. 我們一直輸，你可以打好一點嗎？

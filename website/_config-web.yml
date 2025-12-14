@@ -1,0 +1,79 @@
+# Site
+title: 康青旭 - Germán Caggianese
+bio: "Wiring chaos into minded machines."
+description: "Refactoring entropy in my Mind"
+reading_time: true
+words_per_minute: 190
+logo: "assets/img/logo.png"
+background: "assets/img/moonrise-background.jpg"
+tiled_bg: false # Set this true if you want to tile your background image, otherwise it will be covered
+locale: en_US
+languages: ["en", "es", "zh_TW"]
+default_lang: "en"
+exclude_from_localization: ["javascript", "images", "css", "public", "sitemap", "sass"]
+parallel_localization: false
+lang_from_path: false
+url: "https://www.gcaggianese.space"
+baseurl: ""
+
+# Jekyll
+permalink: /:title
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  auto_ids: true
+  footnote_nr: 1
+  entity_output: as_char
+  toc_levels: 1..6
+  enable_coderay: false
+mathjax: true
+sass:
+  sass_dir: _sass
+  style: compressed
+  sourcemap: never
+  line_comments: true
+
+# Comments
+
+# Social
+email: german.caggianese@pm.me
+github-url: gcaggianese
+gitlab-url: ashxin
+#stackoverflow: 123456/username   from a "http://stackoverflow.com/users/123456/username" link
+#linkedin: username
+instagram: ger_cq
+#youtube: username
+#youtube-channel: channel
+
+# Plugins
+plugins:
+  - jekyll-mentions
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-gist
+  - jekyll-seo-tag
+  - jekyll-paginate
+  - jekyll-include-cache
+  - jekyll-polyglot
+
+jekyll-mentions:
+  base_url: https://codeberg.org/
+
+# Exclude list
+exclude:
+  [
+    README.md,
+    Gemfile,
+    Gemfile.lock,
+    node_modules,
+    gulpfile.js,
+    package.json,
+    _site,
+    src,
+    vendor,
+    CNAME,
+    LICENSE,
+    Rakefile,
+  ]
+future: true
+
