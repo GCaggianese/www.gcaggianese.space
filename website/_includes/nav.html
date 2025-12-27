@@ -61,6 +61,10 @@
                     <a href="http://gitlab.com/{{ site.gitlab-url }}" target="_blank" rel="noopener noreferrer"><i
                             class="fa fa-fw fa-gitlab"></i> Gitlab</a>
                 </li>{% endif %}
+                {% if site.codeberg %}<li>
+                    <a href="https://codeberg.org/{{ site.codeberg }}" target="_blank" rel="noopener noreferrer"><img
+                        src="{{ site.url }}/assets/codeberg_catppuccin.png" alt="Codeberg" class="codeberg-icon-img">&nbsp;&nbsp; Codeberg</a>
+                </li>{% endif %}
                 {% if site.stackoverflow %}<li>
                     <a href="http://stackoverflow.com/users/{{ site.stackoverflow }}" target="_blank"
                         rel="noopener noreferrer"><i class="fa fa-fw fa-stack-overflow"></i> StackOverflow</a>

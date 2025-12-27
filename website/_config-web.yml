@@ -10,7 +10,8 @@ tiled_bg: false # Set this true if you want to tile your background image, other
 locale: en_US
 languages: ["en", "es", "zh_TW"]
 default_lang: "en"
-exclude_from_localization: ["javascript", "images", "css", "public", "sitemap", "sass"]
+exclude_from_localization:
+  ["javascript", "images", "css", "public", "sitemap", "sass"]
 parallel_localization: false
 lang_from_path: false
 url: "https://www.gcaggianese.space"
@@ -38,7 +39,7 @@ sass:
 # Social
 email: german.caggianese@pm.me
 github-url: gcaggianese
-gitlab-url: ashxin
+codeberg: gcaggianese
 #stackoverflow: 123456/username   from a "http://stackoverflow.com/users/123456/username" link
 #linkedin: username
 instagram: ger_cq
@@ -76,4 +77,3 @@ exclude:
     Rakefile,
   ]
 future: true
-
