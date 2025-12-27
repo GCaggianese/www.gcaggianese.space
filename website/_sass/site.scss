@@ -230,6 +230,7 @@ header .entry-meta {
         background-position: center center;
     }
 }
+// Codeberg icon styles for home page
 .codeberg-icon-circle {
   display: inline-flex;
   justify-content: center;
@@ -249,7 +250,7 @@ header .entry-meta {
     object-fit: contain;
     transition: filter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
-    transform: translateY(-2px);
+    transform: translateY(3px);
     z-index: 1;
     // Use same filter functions in both states for smooth interpolation
     filter: brightness(0.87) sepia(0%) saturate(100%);
@@ -257,6 +258,15 @@ header .entry-meta {
   &:hover .codeberg-icon-img,
   &:focus .codeberg-icon-img {
     // Red hover effect
-    filter: brightness(0.5) sepia(100%) saturate(4250%);
+    filter: brightness(0.5) sepia(100%) saturate(4350%);
   }
+}
+
+// Codeberg icon styles for nav menu
+.dl-menuwrapper .codeberg-icon-img {
+  filter: brightness(0.87);
+  width: 0.85em;
+  display: inline-block;
+  vertical-align: middle;
+  transform: translateY(-2px) translateX(3px);
 }
