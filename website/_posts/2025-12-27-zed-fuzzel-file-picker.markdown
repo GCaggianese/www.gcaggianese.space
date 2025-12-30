@@ -3,7 +3,6 @@ layout: post
 title: "zed-fuzzel-filepicker"
 date: 2025-12-27 01:56:19 -0300
 lang: en
-project: true
 permalink: /project/zed-fuzzel-filepicker.html
 ---
 

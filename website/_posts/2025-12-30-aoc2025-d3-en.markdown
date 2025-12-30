@@ -1,0 +1,44 @@
+---
+layout: post
+title: "Advent of Code 2025 - Day 3"
+date: 2025-12-30 00:11:31 -0300
+lang: en
+project-aoc2025: true
+permalink: /project/README.html
+---
+
+"Some kind of electrical surge seems to have fried them. I'll try to get them online soon."
+
+**Github**: *[GCaggianese/AoC-2025/D3](https://github.com/GCaggianese/AoC-2025/tree/master/D3)*
+
+# Puzzle [Day 3: Lobby](https://adventofcode.com/2025/day/3)
+
+## Part One:
+
+1.  int jolt = 0;
+2.  make a list and a copy of it of the input, `og`, `aux1`
+3.  `aux1` will drop the last value ex.: `987654321111118` →
+    `98765432111111`
+4.  you'll take the max here → jolt += aux1.max\*10
+5.  create a 2nd list `aux2`, slice of the `og` from the next position
+    of the max before ex.: `98765432111111` max = 9 → `aux2` =
+    `87654321111118`
+6.  you'll take the max here → jolt += aux2.max
+
+## Part Two:
+
+1.  long jolt = 0;
+2.  multiplier = 10^11 (since we're building a 12-digit number)
+3.  for i = 0 to 11 (picking 12 digits):
+    -   remaining~needed~ = 12 - i
+    -   window = og\[0 .. og.length - remaining~needed~ + 1\] (leave
+        enough elements for future picks) ex.: first pick from
+        `234234234234278`, need 12 digits window = `[2,3,4,2]` (must
+        leave 11 for later)
+    -   pick maxVal from window → jolt += maxVal \* multiplier
+    -   slice og from maxIdx+1 onward (discard everything up to &
+        including pick) ex.: picked 4 at idx 2 → og becomes
+        `[2,3,4,2,3,4,2,7,8]`
+    -   multiplier /= 10
+4.  Summary: pick the highest available digit that still leaves enough
+    digits remaining to complete 12 picks
