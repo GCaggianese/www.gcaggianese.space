@@ -1,0 +1,50 @@
+---
+layout: post
+title: "Advent of Code 2025 - Day 7"
+date: 2026-01-07 14:14:07 -0300
+lang: en
+project-aoc2025: true
+permalink: /project/aoc2025-d7.html
+---
+
+"Suddenly, you find yourself in an unfamiliar room! The room has no doors"
+
+**Github**: *[GCaggianese/AoC-2025/D7](https://github.com/GCaggianese/AoC-2025/tree/master/D7)*
+
+
+# Puzzle [Day 7: Laboratories](https://adventofcode.com/2025/day/7)
+
+## Part One
+Process top-to-bottom. For each cell `a_{i,j}`:
+- `.` → do nothing
+- `S` or `|` → look at $a_{i+1,j}$ (cell below):
+  - if `.` → change it to `|`
+  - if `^` → $a_{i+1,j-1}$ and $a_{i+1,j+1}$ become `|`
+    - **Important**: mark `^` as used
+Count how many `^` splitters are marked as used.
+
+## Part Two
+Count all possible timelines when `^` splits go **one direction at a time**.
+
+For each cell `a_{i,j}`:
+- `col >= cols` → return 1 (completed path)
+- `row >= rows` → return 1 (reached bottom)
+- `^` at $a_{r,col}$ → recurse:
+  - `countPaths(r+1, col-1)` + `countPaths(r+1, col+1)`
+  - if `col == 0` → left branch returns 1 (off-grid = completed)
+
+### Example
+```
+.S.        .S.   .S.
+...   →    .|.   .|.
+.^.        |^.   .^|
+...        |..   ..|
+..^        |.^   .|^
+```
+Left path: 1 (reaches bottom)
+Right path: hits `^` at (4,2) → splits again → 2
+**Total: 3 timelines**
+
+### Optimization
+Memoization via `HashMap(State, usize)` where `State = {row, col}`.
+Avoids recalculating paths from the same position.

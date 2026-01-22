@@ -1,0 +1,108 @@
+---
+layout: post
+title: "Advent of Code 2025 - Day 5"
+date: 2026-01-03 20:07:27 -0300
+lang: en
+project-aoc2025: true
+permalink: /project/aoc2025d5.html
+---
+
+"At this rate, we won't have any time left to put the wreaths up in the dining hall!"
+
+**Github**: *[GCaggianese/AoC-2025/D5](https://github.com/GCaggianese/AoC-2025/tree/master/D5)*
+
+# Puzzle: [Day 5: Cafeteria](https://adventofcode.com/2025/day/5)
+
+## Part One
+
+### Problem
+
+Given an input file containing:
+
+-   Ranges in format `start-end` (e.g., `3-5`, `10-14`)
+-   Individual numbers to check
+
+Count how many individual numbers fall within any of the defined ranges
+(inclusive).
+
+### Algorithm
+
+1.  Parse all ranges into a list of `(start, end)` pairs
+2.  For each individual number:
+    1.  Check if it falls within any range: `start ≤ n ≤ end`
+    2.  If yes, increment counter
+3.  Return final counter
+
+### Implementation Notes (GNU Guile Scheme)
+
+1.  Failed Approaches
+
+    1.  Boolean Vector
+
+        -   **Idea:** Create a vector indexed by numbers, mark ranges as
+            `#t`
+        -   **Problem:** Input contains numbers up to `10^14`, requiring
+            impossible amounts of RAM
+        -   **Verdict:** Works for small test cases, catastrophically
+            explodes on real input
+
+    2.  Hash Table
+
+        -   **Idea:** Expand ranges into hash table entries for O(1)
+            lookup
+        -   **Problem:** Expanding ranges like `1-1000000000` creates
+            billions of entries
+        -   **Result:** Never finished execution
+        -   **Verdict:** Memory bloat + performance disaster
+
+2.  Final Solution: Range Checking
+
+    -   **Approach:** Store ranges as pairs, check containment directly
+    -   **Complexity:**
+        -   Space: O(R) where R = number of ranges (\~1000)
+        -   Time: O(V × R) where V = values to check (\~200)
+    -   **Runtime:** Instant (\<1s)
+    -   **Key insight:** Don't expand ranges—check membership directly
+
+    > Pick the right data structure for the problem. Premature expansion
+    > is the root of all memory evil.
+
+## Part Two
+
+### Problem
+
+-   Count how many unique numbers exist across all defined ranges
+    (expanded, without
+
+repetition).
+
+-   Do not include the individual numbers.
+
+### Solution
+
+1.  Parse all ranges into `(start, end)` pairs (same as part one)
+2.  Sort ranges by start position
+3.  Merge overlapping and adjacent intervals:
+    -   If `next.start ≤ current.end + 1`: merge into one range
+    -   Otherwise: keep as separate range
+4.  Count numbers in merged ranges
+    -   Sum all counts
+
+### Implementation: Interval Merging
+
+-   **Approach:** No expand ranges → merge overlapping intervals and
+    count.
+-   **Complexity:**
+    -   Space: O(R) where R = number of ranges
+    -   Time: O(R log R) for sorting + O(R) for merging = O(R log R)
+-   **Key:** `[1, 1000000000]` is just 2 numbers storing 1 billion
+    values
+
+> Mathematical representation \>\> physical expansion. Store the
+> abstraction is the key.
+
+### Code
+
+``` scheme
+;; See aoc2025-d5.scm for full implementation
+```

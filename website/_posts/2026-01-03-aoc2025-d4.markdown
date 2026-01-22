@@ -1,0 +1,703 @@
+---
+layout: post
+title: "Advent of Code 2025 - Day 4"
+date: 2026-01-03 01:38:10 -0300
+lang: en
+project-aoc2025: true
+permalink: /project/aoc2025d4.html
+---
+
+"If you can optimize the work the forklifts are doing, maybe they would have time to spare to break through the wall."
+
+**Github**: *[GCaggianese/AoC-2025/D4](https://github.com/GCaggianese/AoC-2025/tree/master/D4)*
+
+# Puzzle [Day 4: Printing Department](https://adventofcode.com/2025/day/4)
+
+## Part One:
+
+-   Matrix input where `.` = paper roll, `@` = empty space
+-   Valid = empty space with 5+ adjacent paper rolls
+-   Return count of valid positions
+
+## Part Two:
+
+-   Propagation: valid positions become paper rolls
+-   Repeat until no new valid positions appear
+-   Return total count of all activated positions
+
+![](./aoc2025-d4.jpg)
+
+I included a Python implementation of the solution that is pretty
+straightforward to understand.
+
+# Implementation in FASM
+
+## License
+
+``` asm
+;;; SPDX-FileCopyrightText: 2026 Germán Caggianese <german.caggianese@pm.me>
+;;;
+;;; SPDX-License-Identifier: Apache-2.0
+```
+
+## Header
+
+```nasm
+format ELF64 executable
+entry _start
+```
+
+## Matrix macro
+
+This macro parses the input file at compile time, converting:
+
+-   `.` (paper roll) → 1
+-   `@` (empty space) → 0
+-   Newlines and other characters are skipped
+
+The `virtual` block loads the file into an addressing space, then we
+iterate through each byte and emit only the meaningful ones.
+
+```nasm
+macro matrix_from_file name, filename {
+    virtual at 0
+        name#.data:: file filename
+        name#.size = $
+    end virtual
+    label name byte
+    name#.len = 0
+    repeat name#.size
+        load name#.ch byte from name#.data:(%-1)
+        if name#.ch = '.'
+            db 1
+            name#.len = name#.len + 1
+        else if name#.ch = '@'
+            db 0
+            name#.len = name#.len + 1
+        end if
+    end repeat
+}
+```
+
+## Data segment
+
+### Load the input and define constants
+
+``` nasm
+segment readable writeable
+    matrix_from_file my_matrix, './input.txt'
+    MATRIX_SIZE = my_matrix.len
+    ROWS = 138
+    COLS = 138
+```
+
+### Working buffers
+
+-   `result`: stores neighbor sums after each calculation
+-   `backup`: preserves original matrix state for Part 2
+
+``` nasm
+result rb ROWS * COLS
+backup rb ROWS * COLS
+```
+
+### Direction offsets for 8-connectivity
+
+Each pair is (row~offset~, col~offset~) as signed bytes.
+
+``` nasm
+directions db -1,-1, -1,0, -1,1, 0,-1, 0,1, 1,-1, 1,0, 1,1
+NUM_DIRS = 8
+```
+
+### Counters and output strings
+
+``` nasm
+    counter_p1 dq 0
+    counter_p2 dq 0
+
+    msg_p1 db 'Counter P1: '
+    msg_p1_len = $ - msg_p1
+    msg_p2 db 'Counter P2: '
+    msg_p2_len = $ - msg_p2
+    buffer rb 16
+    newline db 0x0A
+
+segment readable executable
+```
+
+## Main logic
+
+``` nasm
+_start:
+```
+
+### Backup original matrix
+
+We need to preserve the original state because Part 2 will modify it.
+
+-   Copy my~matrix~ → backup
+
+``` nasm
+    xor rcx, rcx
+.backup_loop:
+    cmp rcx, MATRIX_SIZE
+    jge .part1_start
+    mov al, [my_matrix + rcx]
+    mov [backup + rcx], al
+    inc rcx
+    jmp .backup_loop
+```
+
+## Part 1: Single pass calculation
+
+### Add neighbours
+
+For each cell, sum its value plus all valid neighbors. Note:
+
+-   `r12` = row index
+-   `r13` = col index
+
+``` nasm
+.part1_start:
+    xor r12, r12
+
+.p1_row_loop:
+    cmp r12, ROWS
+    jge .p1_correction
+
+    xor r13, r13
+
+.p1_col_loop:
+    cmp r13, COLS
+    jge .p1_next_row
+```
+
+Calculate linear index: rax = row \* COLS + col Note:
+
+-   `r14` = sum (starts with cell value)
+-   `r15` = direction index
+
+``` nasm
+    mov rax, r12
+    imul rax, COLS
+    add rax, r13
+    movzx r14d, byte [my_matrix + rax]
+
+    xor r15, r15
+
+.p1_dir_loop:
+    cmp r15, NUM_DIRS
+    jge .p1_store_result
+```
+
+Load direction offsets
+
+``` nasm
+
+movsx r8, byte [directions + r15*2]      ; r8 = di
+movsx r9, byte [directions + r15*2 + 1]  ; r9 = dj
+```
+
+Calculate neighbor position Note:
+
+-   `r10` = ni = row + di
+-   `r11` = nj = col + dj
+
+``` nasm
+
+mov r10, r12
+add r10, r8
+mov r11, r13
+add r11, r9
+```
+
+Bounds check: 0 \<= ni \< ROWS && 0 \<= nj \< COLS
+
+``` nasm
+cmp r10, 0
+jl .p1_next_dir
+cmp r10, ROWS
+jge .p1_next_dir
+cmp r11, 0
+jl .p1_next_dir
+cmp r11, COLS
+jge .p1_next_dir
+```
+
+Add neighbor value to sum
+
+``` nasm
+    mov rax, r10
+    imul rax, COLS
+    add rax, r11
+    movzx eax, byte [my_matrix + rax]
+    add r14, rax
+
+.p1_next_dir:
+    inc r15
+    jmp .p1_dir_loop
+
+.p1_store_result:
+    mov rax, r12
+    imul rax, COLS
+    add rax, r13
+    mov byte [result + rax], r14b
+
+    inc r13
+    jmp .p1_col_loop
+
+.p1_next_row:
+    inc r12
+    jmp .p1_row_loop
+```
+
+### Correction
+
+Edge cells have fewer neighbors, so we compensate:
+
+-   Edge cells (non-corner): +3
+-   Corner cells: +3 +2 = +5
+
+This normalizes all cells as if surrounded by empty space.
+
+**Top row: +3**
+
+``` nasm
+.p1_correction:
+    xor rcx, rcx
+.p1_top_row:
+    cmp rcx, COLS
+    jge .p1_bottom_row
+    add byte [result + rcx], 3
+    inc rcx
+    jmp .p1_top_row
+```
+
+**Bottom row: +3**
+
+``` nasm
+
+.p1_bottom_row:
+    xor rcx, rcx
+.p1_bottom_loop:
+    cmp rcx, COLS
+    jge .p1_left_col
+    mov rax, (ROWS-1) * COLS
+    add rax, rcx
+    add byte [result + rax], 3
+    inc rcx
+    jmp .p1_bottom_loop
+```
+
+**Left column (excluding corners): +3**
+
+``` nasm
+.p1_left_col:
+    mov rcx, 1
+.p1_left_loop:
+    cmp rcx, ROWS-1
+    jge .p1_right_col
+    mov rax, rcx
+    imul rax, COLS
+    add byte [result + rax], 3
+    inc rcx
+    jmp .p1_left_loop
+```
+
+**Right column (excluding corners): +3**
+
+``` nasm
+.p1_right_col:
+    mov rcx, 1
+.p1_right_loop:
+    cmp rcx, ROWS-1
+    jge .p1_corners
+    mov rax, rcx
+    imul rax, COLS
+    add rax, COLS-1
+    add byte [result + rax], 3
+    inc rcx
+    jmp .p1_right_loop
+```
+
+**Corners: additional +2**
+
+``` nasm
+.p1_corners:
+    add byte [result], 2                              ; [0][0]
+    add byte [result + COLS - 1], 2                   ; [0][COLS-1]
+    add byte [result + (ROWS-1) * COLS], 2            ; [ROWS-1][0]
+    add byte [result + (ROWS-1) * COLS + COLS - 1], 2 ; [ROWS-1][COLS-1]
+```
+
+### Filter (elementwise multiply with inverted original)
+
+Zero out positions where original had a 1 (paper roll). We only care
+about empty spaces (`@`) that have many neighbors.
+
+``` nasm
+    xor rcx, rcx
+.p1_filter_loop:
+    cmp rcx, MATRIX_SIZE
+    jge .p1_count
+
+    cmp byte [my_matrix + rcx], 1
+    jne .p1_filter_next
+    mov byte [result + rcx], 0
+
+.p1_filter_next:
+    inc rcx
+    jmp .p1_filter_loop
+```
+
+### Count cells with value ≥ 5
+
+Note:
+
+-   `r12` = counter
+
+``` nasm
+.p1_count:
+    xor r12, r12
+    xor rcx, rcx
+
+.p1_count_loop:
+    cmp rcx, MATRIX_SIZE
+    jge .p1_done
+
+    cmp byte [result + rcx], 5
+    jl .p1_count_next
+    inc r12
+
+.p1_count_next:
+    inc rcx
+    jmp .p1_count_loop
+
+.p1_done:
+    mov [counter_p1], r12
+```
+
+## Part 2: Propagation loop
+
+Restore original matrix and iterate until saturation. Each iteration,
+cells with ≥5 neighbors become paper rolls.
+
+**Restore my~matrix~ from backup**
+
+``` nasm
+    xor rcx, rcx
+.restore_loop:
+    cmp rcx, MATRIX_SIZE
+    jge .p2_main_loop
+    mov al, [backup + rcx]
+    mov [my_matrix + rcx], al
+    inc rcx
+    jmp .restore_loop
+
+    mov qword [counter_p2], 0
+
+.p2_main_loop:
+```
+
+### Add neighbours (same algorithm as Part 1)
+
+``` nasm
+    xor r12, r12
+
+.p2_row_loop:
+    cmp r12, ROWS
+    jge .p2_correction
+
+    xor r13, r13
+
+.p2_col_loop:
+    cmp r13, COLS
+    jge .p2_next_row
+
+    mov rax, r12
+    imul rax, COLS
+    add rax, r13
+    movzx r14d, byte [my_matrix + rax]
+
+    xor r15, r15
+
+.p2_dir_loop:
+    cmp r15, NUM_DIRS
+    jge .p2_store_result
+
+    movsx r8, byte [directions + r15*2]
+    movsx r9, byte [directions + r15*2 + 1]
+
+    mov r10, r12
+    add r10, r8
+    mov r11, r13
+    add r11, r9
+
+    cmp r10, 0
+    jl .p2_next_dir
+    cmp r10, ROWS
+    jge .p2_next_dir
+    cmp r11, 0
+    jl .p2_next_dir
+    cmp r11, COLS
+    jge .p2_next_dir
+
+    mov rax, r10
+    imul rax, COLS
+    add rax, r11
+    movzx eax, byte [my_matrix + rax]
+    add r14, rax
+
+.p2_next_dir:
+    inc r15
+    jmp .p2_dir_loop
+
+.p2_store_result:
+    mov rax, r12
+    imul rax, COLS
+    add rax, r13
+    mov byte [result + rax], r14b
+
+    inc r13
+    jmp .p2_col_loop
+
+.p2_next_row:
+    inc r12
+    jmp .p2_row_loop
+```
+
+### Correction (same as Part 1)
+
+``` nasm
+.p2_correction:
+    xor rcx, rcx
+.p2_top_row:
+    cmp rcx, COLS
+    jge .p2_bottom_row
+    add byte [result + rcx], 3
+    inc rcx
+    jmp .p2_top_row
+
+.p2_bottom_row:
+    xor rcx, rcx
+.p2_bottom_loop:
+    cmp rcx, COLS
+    jge .p2_left_col
+    mov rax, (ROWS-1) * COLS
+    add rax, rcx
+    add byte [result + rax], 3
+    inc rcx
+    jmp .p2_bottom_loop
+
+.p2_left_col:
+    mov rcx, 1
+.p2_left_loop:
+    cmp rcx, ROWS-1
+    jge .p2_right_col
+    mov rax, rcx
+    imul rax, COLS
+    add byte [result + rax], 3
+    inc rcx
+    jmp .p2_left_loop
+
+.p2_right_col:
+    mov rcx, 1
+.p2_right_loop:
+    cmp rcx, ROWS-1
+    jge .p2_corners
+    mov rax, rcx
+    imul rax, COLS
+    add rax, COLS-1
+    add byte [result + rax], 3
+    inc rcx
+    jmp .p2_right_loop
+
+.p2_corners:
+    add byte [result], 2
+    add byte [result + COLS - 1], 2
+    add byte [result + (ROWS-1) * COLS], 2
+    add byte [result + (ROWS-1) * COLS + COLS - 1], 2
+```
+
+### Filter
+
+``` nasm
+    xor rcx, rcx
+.p2_filter_loop:
+    cmp rcx, MATRIX_SIZE
+    jge .p2_count_and_activate
+
+    cmp byte [my_matrix + rcx], 1
+    jne .p2_filter_next
+    mov byte [result + rcx], 0
+
+.p2_filter_next:
+    inc rcx
+    jmp .p2_filter_loop
+```
+
+### Count and activate
+
+Count cells ≥5 and activate them in `my_matrix` for next iteration.
+
+``` nasm
+.p2_count_and_activate:
+    xor rbx, rbx            ; rbx = new_activations this iteration
+    xor rcx, rcx
+
+.p2_count_loop:
+    cmp rcx, MATRIX_SIZE
+    jge .p2_check_continue
+
+    cmp byte [result + rcx], 5
+    jl .p2_count_next
+
+    inc rbx                         ; new_activations++
+    mov byte [my_matrix + rcx], 1   ; activate: becomes paper roll
+
+.p2_count_next:
+    inc rcx
+    jmp .p2_count_loop
+
+.p2_check_continue:
+    ; counter_p2 += new_activations
+    add [counter_p2], rbx
+
+    ; if new_activations > 0, continue propagating
+    test rbx, rbx
+    jnz .p2_main_loop
+```
+
+## Output
+
+### Print Part 1 result
+
+``` nasm
+.print_results:
+    ; Print "Counter P1: "
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, msg_p1
+    mov rdx, msg_p1_len
+    syscall
+
+    ; Convert counter_p1 to string
+    mov rax, [counter_p1]
+    call .print_number_in_rax
+```
+
+### Print Part 2 result
+
+``` nasm
+; Print "Counter P2: "
+mov rax, 1
+mov rdi, 1
+mov rsi, msg_p2
+mov rdx, msg_p2_len
+syscall
+
+; Convert counter_p2 to string
+mov rax, [counter_p2]
+call .print_number_in_rax
+
+jmp .exit
+```
+
+### Number printing subroutine
+
+Converts value in `rax` to decimal string and prints it with newline.
+
+``` nasm
+.print_number_in_rax:
+    lea rdi, [buffer + 15]
+    mov rcx, 10
+
+    test rax, rax
+    jnz .convert_loop
+    ; Handle zero case
+    dec rdi
+    mov byte [rdi], '0'
+    jmp .do_print
+
+.convert_loop:
+    test rax, rax
+    jz .do_print
+    xor rdx, rdx
+    div rcx                 ; rax = quotient, rdx = remainder
+    add dl, '0'
+    dec rdi
+    mov [rdi], dl
+    jmp .convert_loop
+
+.do_print:
+    ; Calculate length and print
+    lea rdx, [buffer + 15]
+    sub rdx, rdi            ; rdx = length
+    mov rsi, rdi
+    mov rax, 1
+    mov rdi, 1
+    syscall
+
+    ; Print newline
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, newline
+    mov rdx, 1
+    syscall
+    ret
+```
+
+### Exit
+
+``` nasm
+.exit:
+    ;; 下次見～
+    mov rax, 60
+    xor rdi, rdi
+    syscall
+```
+
+# Compile and Run
+
+Compile `main.asm` with `fasm main.asm` and run it with `./main`. It
+should work on every x86 and x86-64 system. The input is hardcoded to be
+at `./input.txt`
+
+Expected output:
+
+``` example
+Counter P1: <number>
+Counter P2: <number>
+```
+
+## Some benchmarks
+
+### Python3
+
+❯ time python3 draft.py Counter P1: 1549 Counter P2: 8887
+
+<u>\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_</u>
+Executed in 1.16 secs fish external usr time 1.15 secs 0.00 micros 1.15
+secs sys time 0.01 secs 871.00 micros 0.00 secs
+
+### PyPy3
+
+❯ time pypy3 draft.py Counter P1: 1549 Counter P2: 8887
+
+<u>\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_</u>
+Executed in 215.26 millis fish external usr time 193.14 millis 0.00
+millis 193.14 millis sys time 21.98 millis 1.14 millis 20.84 millis
+
+### FASM
+
+❯ time ./main \#FASM Counter P1: 1549 Counter P2: 8887
+
+<u>\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_</u>
+Executed in 29.71 millis fish external usr time 28.89 millis 0.00 micros
+28.89 millis sys time 0.77 millis 773.00 micros 0.00 millis
+
+As expected FASM is in the order of 10.7x faster than PyPy's JIT, and
+58x faster than Python. I know that my FASM code is not the most
+efficient, not optimized, neither is the Python one, this benchmark is
+just a funny fact.

@@ -1,0 +1,99 @@
+---
+layout: post
+title: "Advent of Code 2025 - Day 8"
+date: 2026-01-14 23:51:43 -0300
+lang: en
+project-aoc2025: true
+permalink: /project/aoc2025-d8.html
+---
+
+"The Elves were right; they definitely don't have enough extension cables."
+
+**Github**: *[GCaggianese/AoC-2025/D8](https://github.com/GCaggianese/AoC-2025/tree/master/D8)*
+
+
+# Puzzle [Day 8: Playground](https://adventofcode.com/2025/day/8)
+
+## Part One
+
+Connect the 1000 pairs of junction boxes with the **shortest Euclidean distances**.
+
+### Algorithm (Kruskal's MST)
+[Wikipedia: Kruskal's Algorithm](https://en.wikipedia.org/wiki/Kruskal's_algorithm)
+
+1. **Parse input**: Read N junction boxes as 3D points $(x_i, y_i, z_i)$
+2. **Generate all edges**: For each pair $(i, j)$ where $i < j$:
+   $$d_{i,j} = \sqrt{(x_i - x_j)^2 + (y_i - y_j)^2 + (z_i - z_j)^2}$$
+3. **Sort edges** by distance (ascending)
+4. **Process first 1000 edges** using Union-Find:
+   - If $\text{find}(i) \neq \text{find}(j)$ → merge circuits
+   - If $\text{find}(i) = \text{find}(j)$ → skip (redundant)
+5. **Count circuit sizes**: Group boxes by root
+6. **Answer**: Multiply the 3 largest circuit sizes
+
+### Example
+
+After 10 edges:
+```
+Initial: 20 boxes, 20 separate circuits
+Process 10 edges → 9 successful merges (1 redundant)
+Result: 11 circuits with sizes [1,1,1,1,1,1,1,2,2,4,5]
+Answer: 5 × 4 × 2 = 40
+```
+
+## Part Two
+
+Continue connecting until **all boxes are in one circuit**.
+
+### Algorithm
+
+Same as Part 1, but:
+- Don't stop at 1000 edges
+- Track `num_circuits = N` (initially N separate circuits)
+- Each merge: `num_circuits -= 1`
+- When `num_circuits = 1` → **stop**
+- **Answer**: Multiply X coordinates of the two boxes in the final edge
+
+### Example
+```
+Last connection: boxes at (216, 817, 812) and (117, 168, 530)
+Answer: 216 × 117 = 25272
+```
+
+## Union-Find Implementation
+
+**Find with path compression**:
+```ada
+function Find(Parent: in out Parent_Array; X: Natural) return Natural is
+begin
+   if Parent(X) = X then
+      return X;
+   else
+      Parent(X) := Find(Parent, Parent(X));  -- Path compression
+      return Parent(X);
+   end if;
+end Find;
+```
+
+**Union**:
+```ada
+procedure Union(Parent: in out Parent_Array; X, Y: Natural) is
+   Root_X : constant Natural := Find(Parent, X);
+   Root_Y : constant Natural := Find(Parent, Y);
+begin
+   if Root_X /= Root_Y then
+      Parent(Root_X) := Root_Y;
+   end if;
+end Union;
+```
+
+## Complexity
+
+- **Edges**: $\binom{N}{2} = \frac{N(N-1)}{2}$ (for N ≈ 1800 → 1.6M edges)
+- **Sorting**: $O(E \log E)$ where $E = \frac{N(N-1)}{2}$
+- **Union-Find**: $O(E \cdot \alpha(N))$ where $\alpha$ is inverse Ackermann (≈ constant)
+- **Total**: $O(N^2 \log N)$
+
+## Implementation in Ada
+
+Run with `alr build && alr run`
