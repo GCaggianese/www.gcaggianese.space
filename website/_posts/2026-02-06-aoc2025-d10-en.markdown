@@ -1,0 +1,183 @@
+---
+layout: post
+title: "Advent of Code 2025 - Day 10"
+date: 2026-02-06 23:14:19 -0300
+lang: en
+project-aoc2025: true
+permalink: /project/aoc2025-d10.html
+---
+
+"The Elves do have the manual for the machines, but the section detailing the initialization procedure was eaten by a Shiba Inu."
+
+**Github**: *[GCaggianese/AoC-2025/D10](https://github.com/GCaggianese/AoC-2025/tree/master/D10)*
+
+# Puzzle [Day 10: Factory](https://adventofcode.com/2025/day/10)
+
+## Part One
+
+Find the minimum number of button presses required to configure each machine's indicator lights to match the target state.
+
+* **Input**: List of machines, each containing:
+  * Indicator light diagram in `[brackets]`
+  * Button wiring schematics in `(parentheses)`
+  * Joltage requirements in `{curly braces}` (ignored for Part One)
+
+### Parsing Rules
+
+#### Target State (Indicator Lights)
+The indicator light diagram represents the desired binary state:
+* `.` → bit is `0` (off)
+* `#` → bit is `1` (on)
+
+**Example**: `[.##.]` → `0110`
+
+#### Button Mappings
+Each button schematic lists which indicator lights it toggles (XOR operation). The positions are zero-indexed:
+* `(3)` → toggles position 3 → binary mask where only bit 3 is set
+* `(0,2)` → toggles positions 0 and 2 → binary mask where bits 0 and 2 are set
+
+The binary length is determined by the number of indicator lights.
+
+**Example for 4-bit target** `[.##.]`:
+```
+(3)     → 0001  (position 3 set)
+(1,3)   → 0101  (positions 1, 3 set)
+(2)     → 0010  (position 2 set)
+(2,3)   → 0011  (positions 2, 3 set)
+(0,2)   → 1010  (positions 0, 2 set)
+(0,1)   → 1100  (positions 0, 1 set)
+```
+
+**Example for 6-bit target** `[.###.#]`:
+```
+(0,1)   → 110000  (positions 0, 1 set)
+```
+
+### Problem Formulation
+
+Given:
+* Initial state: all lights off → `0000...0`
+* Target state: parsed from indicator diagram
+* Available operations: XOR with any button mask
+
+Find the minimum number of button presses (subset of buttons) such that:
+
+$$\bigoplus_{b \in S} b = \text{target}$$
+
+where $S$ is the subset of buttons used, and each button can be pressed 0 or 1 times (pressing twice cancels out).
+
+### Algorithm
+
+Use dynamic programming to explore all reachable XOR states:
+
+1. Initialize `reachable[0] = 0` (zero presses to reach state 0)
+2. For each button mask $b$:
+   * For each state $s$ in `reachable`:
+     * Compute new state: $s' = s \oplus b$
+     * Update: `reachable[s'] = min(reachable[s'] , reachable[s] + 1)`
+3. Return `reachable[target]`
+
+**Complexity**: $O(n \times 2^k)$ where $n$ is the number of buttons and $k$ is the bit length.
+
+### Example Solutions
+
+**Machine 1**: `[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1)`
+* Target: `0110`
+* Buttons: `{0001, 0101, 0010, 0011, 1010, 1100}`
+* Solution: `(0,2) ⊕ (0,1) = 1010 ⊕ 1100 = 0110`
+* **Minimum presses**: `2`
+
+**Machine 2**: `[...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4)`
+* Target: `00010`
+* **Minimum presses**: `3`
+
+**Machine 3**: `[.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2)`
+* Target: `011101`
+* **Minimum presses**: `2`
+
+## Part Two
+
+Calculate the minimum number of button presses to satisfy the joltage requirements for each machine.
+
+### Concept
+
+The operating mode of the machines changes from manipulating bits (indicator lights) to manipulating integer counters (joltage levels).
+
+* **Goal:** Match the target integer values specified in `{curly braces}`.
+* **Mechanism:**
+* All counters start at 0.
+* Pressing a button **increases** the specific counters it is wired to by `1`.
+* This is an **additive** operation (Linear Algebra), distinct from the XOR operation in Part One.
+
+
+
+### Problem Formulation
+
+We are solving a system of linear equations where the button vectors must sum up to the target vector.
+
+Given:
+
+* Target vector  of size  (from `{...}`).
+*  buttons, where each button  is represented by a vector  of size .
+* If button  affects counter , then , else .
+
+
+
+Find non-negative integers  (representing press counts) that satisfy:
+
+**Objective:** Minimize the total presses :
+
+
+### Algorithm
+
+Since the operations are linear, we can use **Gaussian Elimination** to solve for .
+
+1. **Matrix Construction**: Create an augmented matrix  where columns of  are the button vectors .
+2. **Row Reduction**: Perform Gaussian elimination to transform the matrix into Row Echelon Form.
+3. **Back Substitution**: Solve for the variables .
+* **Determined System**: If there is a unique solution, verify that all  are non-negative integers.
+* **Under-determined System**: If there are free variables (infinite solutions), perform a bounded search on the free variables to find the combination that minimizes .
+
+
+4. **Verification**: Ensure the calculated presses result in integers (within floating-point epsilon) and are .
+
+### Example Solutions
+
+**Machine 1**: `[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}`
+
+* **Target**: `[3, 5, 4, 7]`
+* **Optimization**:
+* Button `(3)` affects index 0 (if indices are reversed) or index 3 depending on mapping.
+* The manual notes one solution: Press `(3)` 1x, `(1,3)` 3x, `(2,3)` 3x, `(0,2)` 1x, `(0,1)` 2x.
+* Total presses: .
+
+
+* **Minimum presses**: `10`
+
+**Machine 2**: `[...#.] ... {7,5,12,7,2}`
+
+* **Target**: `[7, 5, 12, 7, 2]`
+* **Solution**: Press `(0,2,3,4)` 2x, `(2,3)` 5x, `(0,1,2)` 5x.
+* **Minimum presses**: `12`
+
+**Machine 3**: `[.###.#] ... {10,11,11,5,10,5}`
+
+* **Target**: `[10, 11, 11, 5, 10, 5]`
+* **Solution**: Press `(0,1,2,3,4)` 5x, `(0,1,2,4,5)` 5x, `(1,2)` 1x.
+* **Minimum presses**: `11`
+
+# Implementation
+
+## Part One: Typescript
+
+``` sh
+cd Part_One-Typescript/;
+yarn build && yarn start
+```
+
+## Part Two: Rust
+
+``` sh
+cd Part_Two-Rust/;
+RUSTFLAGS="-C target-cpu=native" cargo run --release
+```

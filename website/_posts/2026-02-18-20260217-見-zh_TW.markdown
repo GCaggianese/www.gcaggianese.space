@@ -1,0 +1,43 @@
+---
+layout: post
+title: "見 as a Perceptual Result"
+date: 2026-02-18 00:38:47 -0300
+lang: zh_TW
+area-gyk: true
+permalink: /area/20260217-見.html
+---
+
+When 見 follows a perceptual verb means that the action is in fact
+percieved.
+
+# Structures
+
+\<perceptual verb\> + 見
+
+-   昨天我在夜市看見你。
+
+## Negation
+
+我的手機在那裡？ 我沒看見啊！
+
+## Questions
+
+老師說的，你是不是聽見了？
+
+## Usage
+
+There's a difference between using and not using 見:
+
+-   我沒聽她說話。
+    -   Here the idea is she didn't listen at all (ignored).
+-   我沒聽見她說話。
+    -   Here she couln't listen, sound never successfully reached (no
+        successful perception).
+
+# Exercise - Complete using 見
+
+1. &nbsp;A：人太多了，安同在那裡？我 <u>沒看見</u> 他。<br>
+   &nbsp;B：我 <u>看見他</u>，她就站在學校門口。
+2.  太吵了！你說什麼？我 <u>沒聽見你</u> 。
+3.  是誰在唱歌？你 <u>看見他了</u> 嗎？
+4.  我的書，你 <u>看見了</u> 嗎？

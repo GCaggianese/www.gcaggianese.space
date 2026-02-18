@@ -1,0 +1,130 @@
+---
+layout: post
+title: "Advent of Code 2025 - Day 11"
+date: 2026-02-08 17:00:17 -0300
+lang: en
+project-aoc2025: true
+permalink: /project/aoc2025-d11.html
+---
+
+"It's a good thing you're here! We just installed a new server rack, but we aren't having any luck getting the reactor to communicate with it!"
+
+**Github**: *[GCaggianese/AoC-2025/D11](https://github.com/GCaggianese/AoC-2025/tree/master/D11)*
+
+# Puzzle [Day 11: Reactor](https://adventofcode.com/2025/day/11)
+
+## Part One
+
+Count all possible expansions from `you` to `out`.
+
+### Model
+
+Input is a **directed graph** of rewrite rules:
+
+* Each line: `lhs: rhs1 rhs2 ...`
+* Meaning: from node `lhs` you can jump to any `rhs*`
+* `out` is a terminal sink
+
+### Algorithm (DFS over the graph)
+
+1. **Parse input** into adjacency list `Graph: node -> [next_nodes]`
+2. **DFS** from start node `"you"`
+3. Maintain `onStack` to avoid infinite recursion on cycles (counts **simple paths** only)
+4. Every time DFS reaches `out`, increment `count`
+
+### Core DFS
+
+```nim
+proc dfsCountAll(g: Graph, node: string, onStack: var HashSet[string], outCount: var int64) =
+  if node == "out":
+    inc outCount
+    return
+  if node in onStack:
+    return
+
+  onStack.incl node
+  for nxt in g.getOrDefault(node, @[]):
+    dfsCountAll(g, nxt, onStack, outCount)
+  onStack.excl node
+```
+
+## Part Two
+
+Count paths from `svr` to `out` that include **both** `fft` and `dac`.
+
+Final answer (my input): `462444153119850`
+
+### Why the naive approach dies
+
+Storing every full path (`seq[seq[string]]`) explodes memory because the number of paths is huge (often exponential).
+
+### Algorithm (DP over a DAG with a 2-bit state)
+
+If the graph is acyclic (DAG), you can count paths without enumerating them.
+
+State:
+
+* `mask` bit 0: have we seen `fft`?
+* `mask` bit 1: have we seen `dac`?
+
+DP recurrence:
+
+* `dp(node, mask)` = sum over children `dp(child, mask')`
+* where `mask' = mask OR flags(node)`
+* base case at `out`: return `1` iff `mask == 3`, else `0`
+
+Memoization key: `(node, mask)`.
+
+### DP Core
+
+```nim
+# mask bit0 = seen fft, bit1 = seen dac
+proc countMaskDP(
+  g: Graph,
+  node: string,
+  maskIn: int,
+  memo: var Table[(string, int), int64]
+): int64 =
+  let key = (node, maskIn)
+  if memo.hasKey(key): return memo[key]
+
+  var mask = maskIn
+  if node == "fft": mask = mask or 1
+  if node == "dac": mask = mask or 2
+
+  if node == "out":
+    return (if (mask and 3) == 3: 1 else: 0)
+
+  var acc: int64 = 0
+  for nxt in g.getOrDefault(node, @[]):
+    acc += countMaskDP(g, nxt, mask, memo)
+
+  memo[key] = acc
+  acc
+```
+
+### Notes
+
+- If the graph contains cycles, this DP is not valid for “simple paths”; the implementation falls back to a pruned DFS.
+- Using `int64` is required: results can be enormous (this one is `4.6e14`).
+
+## Complexity
+
+Let:
+
+- `V` = number of nodes
+- `E` = number of edges
+
+Part 1 (DFS, simple paths): worst-case exponential in branching (practically ok if the reachable subgraph is small).
+
+Part 2 (DAG DP):
+
+- States: `4 * V` (because mask ∈ {0,1,2,3})
+- Transitions: each edge processed per mask → `O(4E)` time
+- Memory: `O(4V)` for memo table
+
+## Implementation in Nim
+
+Run with:
+
+`nimble run`
