@@ -35,6 +35,7 @@ layout: compress
                     {% for post in site.posts %}
                         {% if post.lang == site.active_lang %}
                             {% unless post.resource %}
+                            {% unless post.resource-programming %}
                             {% unless post.area %}
                             {% unless post.project %}
                     <ul>
@@ -44,6 +45,7 @@ layout: compress
                             <a href="{{ site.url }}{{ post.url }}" class="btn zoombtn">Read More</a>
                         </li>
                     </ul>
+                        {% endunless %}
                         {% endunless %}
                         {% endunless %}
                         {% endunless %}
