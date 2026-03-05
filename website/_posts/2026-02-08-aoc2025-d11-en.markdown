@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Advent of Code 2025 - Day 11"
+title: "Advent of Code 2025 - Day 11 in Nim"
 date: 2026-02-08 17:00:17 -0300
 lang: en
 project-aoc2025: true
@@ -10,6 +10,7 @@ permalink: /project/aoc2025-d11.html
 "It's a good thing you're here! We just installed a new server rack, but we aren't having any luck getting the reactor to communicate with it!"
 
 **Github**: *[GCaggianese/AoC-2025/D11](https://github.com/GCaggianese/AoC-2025/tree/master/D11)*
+   - [Nim Programming Language](https://nim-lang.org/)
 
 # Puzzle [Day 11: Reactor](https://adventofcode.com/2025/day/11)
 

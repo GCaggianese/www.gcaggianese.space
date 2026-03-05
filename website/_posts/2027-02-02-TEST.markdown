@@ -1,0 +1,28 @@
+---
+layout: hire-me
+title: "TEST"
+date: 2026-02-27 19:02:58 -0300
+lang: en
+permalink: /hire-me.html
+---
+
+## Introduction
+I am an advanced Electrical and AI Engineering student and independent infrastructure consultant, bilingual in English and Spanish. I specialize in two distinct operational lanes: deploying robust, production-ready server infrastructure for B2B clients, and providing applied STEM tutoring for university students.
+
+Whether you need a containerized backend environment secured and routed, or you need to survive advanced Calculus and Physics, I provide clean, documented, and logical solutions.
+
+## 🛠️ Infrastructure & SysAdmin Consulting
+Modern deployments shouldn't be a headache. I specialize in taking raw servers and turning them into secure, automated, and production-ready environments.
+
+* **Custom KVM & VPS Provisioning:** End-to-end setup of server environments.
+* **Container Orchestration:** Docker and Docker-Compose architecture and debugging.
+* **Web Server & Routing:** Nginx reverse proxy configuration, DNS management, and SSL/TLS implementation.
+* **The Proof is in the Stack:** This very website is a live case study. I personally manage the DNS, host it on a custom KVM, route the traffic through a reverse proxy, and publish the content utilizing a custom Org-mode to Jekyll parser I built.
+
+## 📐 STEM & Programming Mentorship
+I leverage my active engineering studies and hands-on infrastructure experience to teach applied mathematics and physics. I don't just teach the formulas; I teach how they operate in real-world technological environments.
+
+* **University Mathematics:** Calculus, Linear Algebra, Statistics.
+* **Advanced Physics:** Mechanics, Electromagnetism.
+* **Computer Science:** Algorithmic logic, Python, C, and competitive programming (See my Advent of Code 2025 solutions below).
+* **Bilingual Instruction:** Available natively in Spanish or fluently in English.

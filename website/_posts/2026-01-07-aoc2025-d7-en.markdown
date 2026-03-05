@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Advent of Code 2025 - Day 7"
+title: "Advent of Code 2025 - Day 7 in Zig"
 date: 2026-01-07 14:14:07 -0300
 lang: en
 project-aoc2025: true
@@ -10,6 +10,7 @@ permalink: /project/aoc2025-d7.html
 "Suddenly, you find yourself in an unfamiliar room! The room has no doors"
 
 **Github**: *[GCaggianese/AoC-2025/D7](https://github.com/GCaggianese/AoC-2025/tree/master/D7)*
+   - [Zig Programming language](https://ziglang.org/)
 
 
 # Puzzle [Day 7: Laboratories](https://adventofcode.com/2025/day/7)

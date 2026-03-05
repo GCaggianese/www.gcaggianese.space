@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Advent of Code 2025 - Day 8"
+title: "Advent of Code 2025 - Day 8 in Ada"
 date: 2026-01-14 23:51:43 -0300
 lang: en
 project-aoc2025: true
@@ -10,7 +10,7 @@ permalink: /project/aoc2025-d8.html
 "The Elves were right; they definitely don't have enough extension cables."
 
 **Github**: *[GCaggianese/AoC-2025/D8](https://github.com/GCaggianese/AoC-2025/tree/master/D8)*
-
+   - [Ada Resource Association](https://www.adaic.org/)
 
 # Puzzle [Day 8: Playground](https://adventofcode.com/2025/day/8)
 

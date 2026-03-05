@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Advent of Code 2025 - Day 10"
+title: "Advent of Code 2025 - Day 10 in Typescript & Rust"
 date: 2026-02-06 23:14:19 -0300
 lang: en
 project-aoc2025: true
@@ -10,6 +10,8 @@ permalink: /project/aoc2025-d10.html
 "The Elves do have the manual for the machines, but the section detailing the initialization procedure was eaten by a Shiba Inu."
 
 **Github**: *[GCaggianese/AoC-2025/D10](https://github.com/GCaggianese/AoC-2025/tree/master/D10)*
+   - [Javascript with syntax for types](https://www.typescriptlang.org/)
+   - [Rust Programming Language](https://rust-lang.org/)
 
 # Puzzle [Day 10: Factory](https://adventofcode.com/2025/day/10)
 

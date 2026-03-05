@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Advent of Code 2025 - Day 4"
+title: "Advent of Code 2025 - Day 4 in flat assembler"
 date: 2026-01-03 01:38:10 -0300
 lang: en
 project-aoc2025: true
@@ -10,6 +10,7 @@ permalink: /project/aoc2025d4.html
 "If you can optimize the work the forklifts are doing, maybe they would have time to spare to break through the wall."
 
 **Github**: *[GCaggianese/AoC-2025/D4](https://github.com/GCaggianese/AoC-2025/tree/master/D4)*
+   - [flat assembler](https://flatassembler.net/)
 
 # Puzzle [Day 4: Printing Department](https://adventofcode.com/2025/day/4)
 

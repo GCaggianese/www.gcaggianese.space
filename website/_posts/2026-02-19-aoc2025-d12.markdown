@@ -1,0 +1,145 @@
+---
+layout: post
+title: "Advent of Code 2025 - Day 12 in Python"
+date: 2026-02-19 00:34:34 -0300
+lang: en
+project-aoc2025: true
+permalink: /project/aoc2025d12.html
+---
+
+"After bumping around for a few minutes, you emerge into a large, well-lit cavern full of Christmas trees!"
+
+**Github**: *[GCaggianese/AoC-2025/D12](https://github.com/GCaggianese/AoC-2025/tree/master/D12)*
+   - [Welcome to Python.org](https://www.python.org/)
+
+# Puzzle [Day 12: Christmas Tree Farm](https://adventofcode.com/2025/day/12)
+
+This project solves a constrained packing problem on small grids.
+
+Given:
+
+* A fixed set of 3×3 binary pieces (`#` = occupied, `.` = empty)
+* A list of board sizes
+* For each board size, one or more *scenarios* specifying how many copies of each piece must be placed
+
+The program determines **which scenarios are feasible**, i.e. whether the required pieces can be placed on the board **without overlap**, allowing **rotations but no reflections**.
+
+---
+
+## Problem Structure
+
+Input is split into two logical sections.
+
+### 1. Piece definitions
+
+Each piece is defined as a 3×3 grid:
+
+```
+0:
+###
+##.
+##.
+
+1:
+###
+##.
+.##
+```
+
+Pieces are indexed by order of appearance (`0, 1, 2, ...`).
+
+Internally:
+
+* `#` → 1
+* `.` → 0
+* Each piece is represented as a set of occupied coordinates
+
+### 2. Requirement scenarios
+
+Each line defines one *scenario* for a given board size:
+
+```
+4x4: 0 0 0 0 2 0
+12x5: 1 0 1 0 2 2
+12x5: 1 0 1 0 3 2
+```
+
+Meaning:
+
+* Board size is `HxW`
+* The numbers specify how many copies of each piece must be placed
+* Multiple lines with the same board size are **independent scenarios**, not errors
+
+---
+
+## Algorithm Overview
+
+This is not a geometric solver. Everything is reduced to **bitmask logic**.
+
+### Core ideas
+
+* Each board cell corresponds to **one bit** in an integer
+* A placement of a piece is a bitmask with bits set for occupied cells
+* Two placements overlap **iff** `mask1 & mask2 != 0`
+
+### Steps
+
+1. Convert each 3×3 piece into a set of coordinates
+2. Generate all **unique rotations** (0°, 90°, 180°, 270°)
+3. For a given board size, generate **all legal placements** of each piece
+4. Convert each placement into a board-sized bitmask
+5. For each scenario:
+
+   * Expand piece counts into a list of piece IDs
+   * Sort pieces by number of placements (fail-fast heuristic)
+   * Use DFS + memoization to try to place all pieces without overlap
+
+---
+
+## [Why Bitmasks?](https://www.gcaggianese.space/resource/bitmask_search.html)
+
+They turn spatial reasoning into boolean algebra.
+
+* Overlap check: `O(1)`
+* State memoization: `(piece_index, occupied_mask)`
+* Clean separation between *geometry* and *search*
+
+This is the standard approach for:
+
+* Polyomino tiling
+* Exact cover problems
+* Constraint satisfaction on small grids
+
+---
+
+## Implementation in Python
+
+Create the environment:
+
+```bash
+mamba env create -f environment.yml
+mamba activate D12
+```
+
+Run the solver:
+
+```bash
+python -m D12
+```
+
+It will:
+
+* Parse the `input.txt` file
+* List all pieces
+* List all requirement scenarios
+* Print how many scenarios are feasible
+* Output the indices of feasible cases
+
+---
+
+## Notes and Constraints
+
+* Pieces are always 3×3
+* Rotations are allowed, reflections are not
+* Boards are empty (no blocked cells)
+* The solver checks **existence**, not number of solutions

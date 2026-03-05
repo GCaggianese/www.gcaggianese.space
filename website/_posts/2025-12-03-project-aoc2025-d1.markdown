@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Advent of Code 2025 - Day 1"
+title: "Advent of Code 2025 - Day 1 in C++"
 date: 2025-12-03 20:46:39 -0300
 lang: en
 project-aoc2025: true
@@ -10,6 +10,7 @@ permalink: /project/aoc2025d1.html
 "Due to new security protocols, the password is locked in the safe below. Please see the attached document for the new combination."
 
 **Github**: *[GCaggianese/AoC-2025/D2](https://github.com/GCaggianese/AoC-2025/tree/master/D2)*
+   - [Standard C++](https://isocpp.org/)
 
 # Puzzle [Day 1 - Advent of Code](https://adventofcode.com/2025/day/1)
 

@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Advent of Code 2025 - Day 3"
+title: "Advent of Code 2025 - Day 3 in D"
 date: 2025-12-30 00:11:31 -0300
 lang: en
 project-aoc2025: true
@@ -10,6 +10,7 @@ permalink: /project/aoc2025d3.html
 "Some kind of electrical surge seems to have fried them. I'll try to get them online soon."
 
 **Github**: *[GCaggianese/AoC-2025/D3](https://github.com/GCaggianese/AoC-2025/tree/master/D3)*
+   - [D programming language](https://dlang.org/)
 
 # Puzzle [Day 3: Lobby](https://adventofcode.com/2025/day/3)
 

@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Advent of Code 2025 - Day 5"
+title: "Advent of Code 2025 - Day 5 in GNU Guile"
 date: 2026-01-03 20:07:27 -0300
 lang: en
 project-aoc2025: true
@@ -10,6 +10,7 @@ permalink: /project/aoc2025d5.html
 "At this rate, we won't have any time left to put the wreaths up in the dining hall!"
 
 **Github**: *[GCaggianese/AoC-2025/D5](https://github.com/GCaggianese/AoC-2025/tree/master/D5)*
+   - [GNU's Programming and Extension Language](https://www.gnu.org/software/guile/)
 
 # Puzzle: [Day 5: Cafeteria](https://adventofcode.com/2025/day/5)
 

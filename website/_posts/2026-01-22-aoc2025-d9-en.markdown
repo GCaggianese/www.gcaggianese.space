@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Advent of Code 2025 - Day 9"
+title: "Advent of Code 2025 - Day 9 in Gambit Scheme"
 date: 2026-01-22 16:14:06 -0300
 lang: en
 project-aoc2025: true
@@ -10,6 +10,7 @@ permalink: /project/aoc2025-d9.html
 "You slide down the firepole in the corner of the playground and land in the North Pole base movie theater!"
 
 **Github**: *[GCaggianese/AoC-2025/D9](https://github.com/GCaggianese/AoC-2025/tree/master/D9)*
+   - [Gambit Scheme](https://gambitscheme.org/)
 
 # Puzzle [Day 9: Movie Theater](https://adventofcode.com/2025/day/9)
 

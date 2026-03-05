@@ -1,0 +1,49 @@
+---
+layout: post
+title: "『不得了』『．．．．下去』『完』練習"
+date: 2026-02-26 00:33:27 -0300
+lang: zh_TW
+area-gyk: true
+permalink: /area/『不得了』『．．．．下去』『完』練習.html
+---
+
+# Compability Complement 了
+
+## Function
+
+了 Is only used in the case that the result can be achieved.
+
+-   這是很多包子，我很餓所以我吃得了。
+-   這本書很難，難讀得不得了！
+-   學校離這裡有一點遠，你走得了走不了？
+
+## Usage
+
+了 is irregular, therefore it can only be used in potential mode when
+the regular complements can also be used in the actual mode.
+
+|         | Actual | Actual  | Potential | Potential |
+|---------|--------|---------|-----------|-----------|
+| 了      | V 了   | 沒 V 了 | V 得了    | V 不了    |
+| ㄌㄧㄠˇ | ✖️      | ✖️       | ✔️         | ✔️         |
+
+# Keep On Doing 下去
+
+## Function
+
+Used as a temporal complement meaning 'Keep on Doing'
+
+-   妳唱歌唱得很好，再唱下去！
+-   這個套路很難，你練得下去嗎？
+-   太晚了！電動但是我想打下去。
+
+# Completion of Action with V + 完
+
+## Function
+
+完 following an action verb indicates completion action completeness.
+
+-   我們已經吃完早餐了。
+-   我忘了做我的作業，現在我沒寫完！
+    -   我玩了做我的作業和現在我沒寫完！
+-   你是不是看完這本書了？

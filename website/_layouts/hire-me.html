@@ -1,0 +1,98 @@
+---
+layout: compress
+---
+<!DOCTYPE html>
+
+<head>
+  {% include head.html %}
+</head>
+
+<body>
+  {% include nav.html %}
+  <!-- Header -->
+  <header class="header flex" role="banner">
+    <div class="container animated fadeIn">
+      <div class="row">
+        <a href="{{ site.url }}">
+          <img src="{{ site.logo }}" class="img-circle zoombtn animated rotateIn">
+        </a>
+        <h3 class="title">
+          <a class="zoombtn" href="{{ site.url }}">
+            <p style="font-size:1.2rem;font-weight:300">Germán Caggianese</p>
+          </a>
+        </h3>
+        <hr class="hr-line">
+        <h3 class="title">
+          <a href="{{ site.url }}/about">
+            <p style="font-weight: bold; font-size: 1.1rem;">Systems Infrastructure Engineer & STEM Consultant</p>
+            <p style="font-size: 1rem; font-weight: 300;">Operating in GMT-3 (Seamless US & LatAm Alignment)</p>
+          </a>
+
+                    <a class="btn zoombtn" href="mailto:german.caggianese@pm.me">
+                        ✉️ EMAIL ME TO GET STARTED
+                    </a>
+
+        </h3>
+        <hr class="hr-line">
+        <div class="content">
+          {{ content }}
+        </div>
+
+
+
+        <h3 class="title">
+                    <a class="btn zoombtn" href="{{ site.url }}/projects">
+                        Projects & Portfolio
+                    </a>
+
+                    <a class="btn zoombtn" href="{{ site.url }}">
+                        Knowledge Base
+                    </a>
+          <div style="display: flex; justify-content: center; align-items: center; gap: 14px; margin: 0px 20px 0px 0px;">
+            <hr class="hr-line" />
+            <h3 class="title" style="font-size: 30px">
+              <a
+                class="social-btn"
+                href="mailto:german.caggianese@pm.me"
+                target="_blank"
+                rel="noopener noreferrer"
+                ><i class="fa fa-fw fa-envelope-square"></i></a
+                                                              >
+              <a
+                class="social-btn"
+                href="http://linkedin.com/in/test"
+                target="_blank"
+                rel="noopener noreferrer"
+                ><i class="fa fa-fw fa-linkedin-square"></i></a
+                                                              ><a
+                                                                 class="social-btn"
+                                                                 href="http://github.com/GCaggianese"
+                                                                 target="_blank"
+                                                                 rel="noopener noreferrer"
+                                                                 ><i class="fa fa-fw fa-github"></i></a
+                                                                                                      ></h3>
+          </div>
+        </h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 1rem;">
+          <div style="text-align: left;">
+            <a href="{{ site.url }}/about" style="font-size: 0.7em; font-weight:300; color: LightSteelBlue;">About</a>
+          </div>
+
+          <div class="language-switcher" style="text-align: right;">
+            <a href="{{ site.url }}" title="English" class="btn zoombtn lang-btn">
+              <img src="{{ site.url }}/assets/img/flags/uk.png" alt="English" style="width:24px;height:auto;">
+            </a>
+            <a href="{{ site.url }}/es{{ page.url }}" title="Español" class="btn zoombtn lang-btn">
+              <img src="{{ site.url }}/assets/img/flags/uy.png" alt="Español" style="width:24px;height:auto;">
+            </a>
+            <a href="{{ site.url }}/zh_TW{{ page.url }}" title="中文" class="btn zoombtn lang-btn">
+              <img src="{{ site.url }}/assets/img/flags/tw.png" alt="中文" style="width:24px;height:auto;">
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+  {% include scripts.html %}
+</body>
+</html>

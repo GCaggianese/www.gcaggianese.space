@@ -1,0 +1,62 @@
+---
+layout: post
+title: "第二冊 第九課p 213"
+date: 2026-02-27 19:02:58 -0300
+lang: zh_TW
+area-gyk: true
+permalink: /area/第二冊-第九課p-213.html
+---
+
+# 新詞
+
+特色
+:   ㄊㄜˋ ㄙㄜˋ :: Unique features
+
+廟
+:   ㄇㄧㄠˋ :: Temple
+
+教堂
+:   ㄐㄧㄠˋ ㄊㄤˊ :: Church/Cathedral
+
+潛水
+:   ㄑㄧㄢˊ ㄕㄨㄟˇ :: To dive
+
+各
+:   ㄍㄜˋ :: Various / All; Every
+
+魚
+:   ㄩˊ :: 魚 :: Fish
+
+酸
+:   ㄙㄨㄢ :: Sour
+
+檸檬
+:   ㄋㄧㄥˊ ㄇㄥˊ :: Lemon
+
+忘不了
+:   ㄨㄤˋ ㄅㄨˋ ㄌㄧㄠˇ :: Unforgettable
+
+款
+:   ㄎㄨㄢˇ :: [Measure word for software/models/types]
+
+軟體
+:   ㄖㄨㄢˇ ㄊㄧˇ :: Software
+
+執行
+:   ㄓˊ ㄒㄧㄥˊ :: To execute / To run
+
+速度
+:   ㄙㄨˋ ㄉㄨˋ :: Speed
+
+極
+:   ㄐㄧˊ :: Extremely / Very
+
+# 句子
+
+-   這款軟體最大的特色是執行速度極快。
+-   你知道嗎？她的狗叫柴魚。
+-   台灣各地的廟都有不同的特色。
+-   檸檬可以是很酸。
+-   做潛水在這裡很漂亮！我看得到很多顏色的魚。
+    -   真的忘不了得地方。
+-   酸味是這道菜的主要特色，我吃不了。
