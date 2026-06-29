@@ -1,0 +1,360 @@
+---
+layout: post
+title: "RelAI"
+date: 2026-05-13 22:21:43 -0300
+lang: en
+project: true
+permalink: /project/relai.html
+---
+
+Real-time speech translation in the browser using OpenAI Realtime Translation, WebRTC, TypeScript, Vite, and a FastAPI ephemeral-token backend.
+
+# RelAI
+
+**Github:** [GCaggianese/RelAI](https://github.com/GCaggianese/RelAI)
+
+RelAI is a browser-based MVP for live speech translation.
+
+It captures microphone audio with `getUserMedia`, sends it to OpenAI through a WebRTC peer connection, receives translated speech as a remote audio track, and displays both source and translated transcripts from realtime data-channel events.
+
+The backend is intentionally small: it only creates ephemeral client secrets, so the long-lived OpenAI API key never needs to be exposed to the browser.
+
+## Status
+
+Working MVP.
+
+Implemented:
+
+- Browser microphone capture
+- WebRTC session setup with OpenAI Realtime Translation
+- Translated audio playback
+- Source transcript subtitles
+- Translated transcript subtitles
+- FastAPI backend for ephemeral client secrets
+- Basic session lifecycle handling
+- WebRTC connection-state logging
+- Firefox/Zen compatibility warning
+
+Deferred:
+
+- Full interpreter mode
+- Mobile wrapper
+- Production deployment
+- Persistent session history
+- Advanced audio routing
+- Authentication / user accounts
+
+RelAI is not a polished product yet. It is a working prototype focused on validating the realtime speech translation loop end-to-end.
+
+## Why this project exists
+
+Most AI translation demos hide the interesting parts behind a normal request/response API.
+
+RelAI explores the lower-level path:
+
+- live microphone streaming
+- WebRTC offer/answer exchange
+- browser media permissions
+- remote translated audio playback
+- transcript deltas over a data channel
+- ephemeral browser credentials
+- browser-specific WebRTC behavior
+- failure handling for unstable realtime sessions
+
+The interesting problem is not “call an AI API and translate text”.
+
+The interesting problem is building a realtime browser audio pipeline where speech, translation, playback, subtitles, credentials, and WebRTC state all have to cooperate inside one live session.
+
+## Architecture
+
+```text
+Browser
+├── getUserMedia()
+│   └── microphone audio track
+│
+├── RTCPeerConnection
+│   ├── sends microphone audio to OpenAI
+│   ├── receives translated audio track
+│   └── creates DataChannel "oai-events"
+│
+├── HTMLAudioElement
+│   └── plays translated remote audio stream
+│
+└── DataChannel events
+    ├── session.input_transcript.delta
+    │   └── source subtitles
+    └── session.output_transcript.delta
+        └── translated subtitles
+
+FastAPI backend
+└── POST /session
+    └── creates ephemeral OpenAI Realtime Translation client secret
+```
+
+## How it works
+
+### 1. The browser captures microphone audio
+
+The frontend requests microphone access through `navigator.mediaDevices.getUserMedia()`.
+
+The current audio constraints enable:
+
+* echo cancellation
+* noise suppression
+* automatic gain control
+
+The resulting microphone track is added directly to a WebRTC peer connection.
+
+### 2. The backend creates an ephemeral client secret
+
+The frontend does not use the long-lived OpenAI API key.
+
+Instead, it calls the local backend:
+
+```text
+POST /session
+```
+
+with:
+
+```json
+{
+  "targetLanguage": "en"
+}
+```
+
+The FastAPI server then calls OpenAI's realtime translation client-secret endpoint using `OPENAI_API_KEY` from the server environment.
+
+The browser receives only the ephemeral client secret.
+
+### 3. The frontend performs the WebRTC exchange
+
+The frontend:
+
+1. Creates an `RTCPeerConnection`.
+2. Adds the microphone audio track.
+3. Creates the `oai-events` data channel.
+4. Generates an SDP offer.
+5. Sends that SDP offer to OpenAI using the ephemeral client secret.
+6. Receives the SDP answer.
+7. Sets the remote description.
+8. Starts receiving translated audio and transcript events.
+
+### 4. Translated audio is played as a remote track
+
+When OpenAI returns a remote media stream, RelAI attaches it to an `HTMLAudioElement` and plays the translated audio in the browser.
+
+### 5. Subtitles arrive as realtime deltas
+
+The data channel receives realtime events.
+
+RelAI currently consumes:
+
+```text
+session.input_transcript.delta
+session.output_transcript.delta
+```
+
+Those deltas are appended live into the UI as source and translated subtitles.
+
+## Modes
+
+### Translate mode
+
+Currently active.
+
+```text
+microphone speech -> translated audio + source/target subtitles
+```
+
+The UI shows:
+
+* source transcript
+* translated transcript
+* translated audio playback
+
+The target language selector controls the output language sent to the backend.
+
+The source language selector is currently UI-only; source speech is effectively handled by the realtime translation model.
+
+### Interpreter mode
+
+Interpreter mode was the original planned second mode.
+
+The design was:
+
+```text
+Session A -> translate into language A -> left ear
+Session B -> translate into language B -> right ear
+```
+
+The goal was to support live bilingual interpretation with two parallel translation sessions and stereo panning.
+
+The HTML still contains the interpreter-mode UI skeleton, but the current application intentionally disables it while the single-session translation path is stabilized.
+
+## Browser compatibility
+
+Chromium-based browsers are recommended for the current MVP.
+
+Observed during local testing:
+
+* Chromium: stable
+* Firefox / Zen Browser: may disconnect after a short time
+
+RelAI detects Firefox-family browsers and displays a compatibility warning.
+
+The suspected issue is in the WebRTC/browser behavior rather than the UI layer. The code includes WebRTC connection-state logging and a short grace period before treating soft disconnects as fatal.
+
+## Stack
+
+Frontend:
+
+* Vite
+* TypeScript
+* WebRTC
+* browser media APIs
+* vanilla DOM UI
+* CSS
+
+Backend:
+
+* FastAPI
+* httpx
+* python-dotenv
+* Uvicorn
+
+## Repository layout
+
+```text
+.
+├── app
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── src
+│   │   ├── main.ts
+│   │   ├── style.css
+│   │   └── translator.ts
+│   ├── tsconfig.json
+│   └── vite.config.ts
+├── server
+│   ├── main.py
+│   └── requirements.txt
+├── README.md
+└── LICENSE
+```
+
+## Requirements
+
+* Python 3
+* Node.js + npm
+* OpenAI API key with access to realtime translation
+* A Chromium-based browser is recommended for testing
+
+## Running locally
+
+### 1. Backend
+
+```bash
+cd server
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Create `server/.env`:
+
+```env
+OPENAI_API_KEY=sk-...
+OPENAI_SAFETY_IDENTIFIER=local-dev-user
+```
+
+Run the backend:
+
+```bash
+uvicorn main:app --reload
+```
+
+The backend runs on:
+
+```text
+http://localhost:8000
+```
+
+### 2. Frontend
+
+In another terminal:
+
+```bash
+cd app
+npm install
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:5173
+```
+
+The Vite dev server proxies:
+
+```text
+/session -> http://localhost:8000
+```
+
+## Build
+
+Frontend build:
+
+```bash
+cd app
+npm run build
+```
+
+Preview production build locally:
+
+```bash
+npm run preview
+```
+
+## Security notes
+
+The browser never receives the long-lived OpenAI API key.
+
+The credential flow is:
+
+```text
+server/.env
+    ↓
+FastAPI /session
+    ↓
+OpenAI client-secret endpoint
+    ↓
+ephemeral browser secret
+    ↓
+WebRTC SDP exchange
+```
+
+The backend logs session metadata for debugging, but intentionally does not print the ephemeral secret value.
+
+## Known limitations
+
+* Translate mode is the only active mode.
+* Interpreter mode is present in the UI skeleton but disabled.
+* Firefox/Zen may disconnect from WebRTC after a few seconds of session.
+* Error recovery is basic.
+* No production auth.
+* No deployment config.
+* No mobile wrapper.
+* Source-language selection is not yet wired into the backend payload.
+* The UI is just local MVP testing.
+
+## Future work
+
+Possible next steps:
+
+* Re-enable interpreter mode after single-session stability improves.
+* Add explicit Web Audio routing and stereo panning (interpreter mode).
+* Improve reconnect behavior.
+* Document the Firefox/Gecko WebRTC failure mode more precisely (or try to solve it).

@@ -312,17 +312,3 @@ More capable local models could move some decision-making back into the inferenc
 * Local inference: [Ollama](https://ollama.com/)
 * Model: [IBM Granite](https://www.ibm.com/granite)
 * Optional hosted backend: Gemini 2.5 Flash
-
-## Licensing
-
-This repository contains both original work and modified upstream code.
-
-* Files written specifically for this project (`agent.d`, `parser.d`, scripts, README, etc.) are licensed under Apache-2.0.
-* The bundled `termrex` upstream code and any modifications derived from it remain under the original MIT license from SATYADAHAL/termrex.
-
-See:
-
-* `LICENSES/Apache-2.0.txt`
-* `LICENSES/MIT.txt`
-
-All source files carry SPDX headers and the repository is [REUSE](https://reuse.software/)-compliant.

@@ -1,6 +1,6 @@
 ---
 layout: hire-me
-title: "TEST"
+title: "Hire me"
 date: 2026-02-27 19:02:58 -0300
 lang: en
 permalink: /hire-me.html

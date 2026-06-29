@@ -1,0 +1,389 @@
+---
+layout: post
+title: "FSF40 3DLDF Package - Guix Build Investigation"
+date: 2025-11-22 17:07:27 -0300
+lang: en
+project: true
+permalink: /project/FSF40.html
+---
+
+3DLDF is an older GNU project for three-dimensional drawing with
+MetaPost output. The upstream build system is non-trivial: it depends on
+CWEB tooling, autotools regeneration, generated headers, old C++
+assumptions, and database integration that does not map cleanly to a
+modern isolated Guix build environment.
+
+The goal is to document the engineering path needed to get 3DLDF
+building far enough to produce a minimal verified output, while
+identifying the remaining blockers for proper packaging.
+
+**Github:** [GCaggianese/fsf40-3dldf-guix-build](https://github.com/GCaggianese/fsf40-3dldf-guix-build)
+
+**Codeberg** (engineering notes): [GCaggianese/FSF40-3DLDF_package](https://codeberg.org/GCaggianese/FSF40-3DLDF_package)
+
+# Result
+
+The current build process reaches a minimal working `--no-database`
+path.
+
+The test file under `tests/test.ldf` generates MetaPost output, which
+can then be converted into a PDF and PNG.
+
+![Minimal 3DLDF output generated through
+MetaPost.](../assets/test-1-1.png)
+
+Yes: the artifact is a diagonal line.
+
+Though the important part is that the historical 3DLDF toolchain was
+pushed far enough to complete a real output pipeline:
+
+``` text
+3DLDF source -> MetaPost output -> PDF -> PNG
+```
+
+# What is in this repository
+
+-   Build notes for GNU 3DLDF under Guix
+-   A patched `ctangle` workflow needed to process the 3DLDF sources
+-   Autotools bootstrap notes
+-   Guix shell environment used during the build
+-   Notes on MySQL/database-related blockers
+-   Minimal verified test output under `tests/`
+
+Repository layout:
+
+``` text
+.
+├── README.org
+└── tests
+    ├── ldf_1.log
+    ├── test.1
+    ├── test-1.pdf
+    ├── test-1-1.png
+    ├── test.ldf
+    ├── test.log
+    ├── test.mf
+    └── test.mp
+```
+
+# Why this is interesting
+
+This is not a normal "run configure and make" build.
+
+The build required dealing with:
+
+-   CWEB / `ctangle` limits
+-   generated source and header files
+-   autotools regeneration
+-   old C++ code requiring permissive compiler flags
+-   hardcoded MySQL assumptions
+-   Guix store paths and isolated build environments
+-   partial functionality through `--no-database`
+
+The most relevant part of the work is the build archaeology: identifying
+which parts of the historical toolchain still work, which parts need
+patching, and which parts would need proper Guix packaging work.
+
+# Current status
+
+The project was built far enough to run a minimal 3DLDF input file with
+`--no-database` and generate MetaPost output.
+
+A minimal diagonal-line test was processed into a `test.mp` file and
+then passed through `mptopdf`, producing the expected PDF output.
+
+This confirms that at least a small non-database path through the
+program works.
+
+This does **not** mean the full 3DLDF system is packaged or fully
+functional.
+
+Known limitations:
+
+-   Database functionality is not working.
+-   3DLDF appears to hardcode MySQL access assumptions such as
+    `/run/mysql`.
+-   Some upstream example files were not successfully parsed by hand.
+-   The patched `ctangle` workflow is currently manual.
+-   The current process is just a build investigation, not a Guix
+    package.
+
+# Patched ctangle
+
+3DLDF requires a larger `ctangle` configuration than the stock build
+provided in my environment.
+
+Clone CWEB:
+
+``` bash
+git clone https://github.com/ascherer/cweb.git
+```
+
+Modify the CWEB `Makefile` so `RM` and `CP` use explicit environment
+lookup:
+
+``` makefile
+RM= /usr/bin/env rm
+CP= /usr/bin/env cp
+```
+
+Patch `ctangle.w` by increasing the internal limits:
+
+``` c
+@ @d max_texts 10239 /* number of replacement texts, must be less than 10240 */
+@d max_toks 27000000 /* number of bytes in compressed \CEE/ code */
+```
+
+Then build CWEB:
+
+``` bash
+make all
+```
+
+Get the absolute path to the patched `ctangle`:
+
+``` bash
+realpath ctangle
+```
+
+That path is later used when building 3DLDF.
+
+A better long-term solution would be to package this patched `ctangle`
+as a temporary Guix input or apply the relevant CWEB change during the
+3DLDF package build.
+
+# Guix shell environment
+
+The 3DLDF build was done inside a pure Guix shell:
+
+``` bash
+guix shell \
+  libtool \
+  gsl \
+  mysql \
+  pkg-config \
+  gcc-toolchain@11.5.0 \
+  automake@1.16.5 \
+  flex \
+  bison \
+  coreutils \
+  sed \
+  grep \
+  gawk \
+  make \
+  bash \
+  m4 \
+  autoconf \
+  openssl \
+  glibc \
+  glib:bin \
+  findutils \
+  --pure -- bash --norc --noprofile
+```
+
+The patched `ctangle` itself was built outside this pure shell on my
+base Guix system.
+
+It should be possible to avoid that by packaging the patched CWEB tool
+properly or by injecting the patched tool through a Guix build phase.
+
+# Building 3DLDF
+
+## Bootstrap autotools
+
+From the 3DLDF source tree:
+
+``` bash
+libtoolize && \
+aclocal && \
+autoconf && \
+automake --add-missing --copy
+```
+
+## Locate MySQL flags
+
+Inside the Guix shell:
+
+``` bash
+pkg-config --cflags mysqlclient
+```
+
+This produces Guix store paths for the MySQL and OpenSSL headers.
+
+The current manual build used those paths in `CPPFLAGS` and `LDFLAGS`.
+
+This is acceptable for investigation, but it should not be hardcoded in
+a proper Guix package.
+
+## Configure
+
+Example configure invocation used during the investigation:
+
+``` bash
+./configure --prefix=$(pwd) \
+  CPPFLAGS="-I/gnu/store/<mysql>/include/mysql -I/gnu/store/<openssl>/include" \
+  CXXFLAGS="-std=gnu++11 -fpermissive -fdiagnostics-show-option -Wno-return-type -g -O2" \
+  LDFLAGS="-L/gnu/store/<mysql>/lib" \
+  --disable-shared \
+  LIBS="-lgsl -lgslcblas -lm -lmysqlclient"
+```
+
+Replace the placeholder store paths with the output from `pkg-config`
+and the corresponding MySQL library path.
+
+The flags are intentionally shown here as part of the build
+investigation. A real Guix package should derive these paths from
+inputs, not from manually copied store paths.
+
+# Pre-build patches
+
+## Use patched ctangle
+
+The generated `src/Makefile` calls `ctangle` directly.
+
+For the manual build, every `ctangle` invocation was replaced with the
+absolute path to the patched `ctangle` built earlier.
+
+This is a manual workaround.
+
+A proper Guix package should provide the patched tool through the build
+environment instead.
+
+## Generate headers
+
+From inside `src/`:
+
+``` bash
+./create_headers.sh
+```
+
+## Patch scanner/parser generation
+
+The generated build expects a helper program to be available in `$PATH`.
+
+A relevant historical reference is available from the GNU mailing list:
+
+-   <https://lists.gnu.org/archive/html/help-3dldf/2005-11/txtW0PLXn2tsu.txt>
+
+In the generated `src/Makefile`, the relevant rule was adjusted manually
+so the build could generate `scnmptpt.l++` correctly.
+
+Example of the patched rule shape:
+
+``` makefile
+scnmptpt.l++: scnmptpt.web
+    /path/to/patched/ctangle scnmptpt.web
+    ./prbsnflx$(EXEEXT) scnmptpt.c scnmptpt.l++
+    rm scnmptpt.c
+    ./check_scan_parse_output.sh scnmptpt.lxx scnmptpt.l++
+```
+
+# Compile
+
+From inside `src/`:
+
+``` bash
+make prog
+```
+
+To clean the generated tree:
+
+``` bash
+make maintainer-clean
+```
+
+Note that `maintainer-clean` removes generated files and requires
+restarting the bootstrap process.
+
+# Minimal test
+
+A small test file was used to verify the non-database output path.
+
+The test source is available at:
+
+``` text
+tests/test.ldf
+```
+
+Test input:
+
+``` ldf
+verbatim_metapost "beginfig(1);";
+verbatim_metapost "draw (0,0)--(100,100);";
+verbatim_metapost "endfig;";
+verbatim_metapost "end";
+```
+
+Run:
+
+``` bash
+./3dldf --no-database test.ldf
+```
+
+Then finish the interactive session with:
+
+``` text
+end
+```
+
+This produces a MetaPost file:
+
+``` text
+test.mp
+```
+
+Convert it with:
+
+``` bash
+mptopdf test.mp
+```
+
+The generated files are included under `tests/`:
+
+``` text
+tests/test.mp
+tests/test-1.pdf
+```
+
+# Packaging notes
+
+A proper Guix package should probably address the following:
+
+1.  Package or patch the required `ctangle` behavior cleanly.
+2.  Avoid hardcoded Guix store paths in compiler and linker flags.
+3.  Patch database paths and MySQL assumptions.
+4.  Decide whether database functionality should be supported initially.
+5.  Automate header generation and scanner/parser generation.
+6.  Replace manual Makefile edits with Guix build phases or source
+    patches.
+
+A realistic first package target would be:
+
+-   build 3DLDF
+-   run a minimal `--no-database` test
+-   generate MetaPost output
+-   skip database integration initially
+
+That would preserve some minimal useful functionality while avoiding the
+hardest legacy database problems in the first iteration.
+
+# Repository status
+
+This repository is currently an engineering log and reproducibility aid,
+not a finished Guix package.
+
+The work was produced as part of the FSF40 hackathon and records a
+working path through several build blockers around GNU 3DLDF, CWEB,
+autotools, Guix build environments, and legacy MySQL assumptions.
+
+In its current form, the repository is mainly useful for:
+
+-   future Guix packaging work
+-   documenting legacy GNU build issues
+-   reproducing the minimal non-database output path
+-   preserving notes on CWEB / autotools / MySQL-related blockers
+
+---
+
+
+> This post is licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/) (CC BY-SA 4.0), which is one-way compatible with [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html).
