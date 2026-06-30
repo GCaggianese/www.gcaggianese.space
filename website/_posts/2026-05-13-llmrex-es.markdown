@@ -1,0 +1,316 @@
+---
+layout: post
+title: "llmrex"
+date: 2026-05-13 17:58:00 -0300
+lang: es
+project: true
+permalink: /project/llmrex.html
+---
+
+Agente de juego en terminal en tiempo real usando GNU Screen IPC e inferencia local con un LLM de 1B en hardware solo CPU.
+
+> Traducción de <a {% static_href %}href="/project/llmrex.html"{% endstatic_href %}>la publicación original en inglés</a>.
+
+# llmrex
+
+> Un LLM local de 1B juega un juego de dinosaurio en terminal en tiempo real mediante GNU Screen IPC. Solo CPU. No requiere GPU.
+
+![demo](../assets/demo.gif)
+
+**Github:** [GCaggianese/llmrex](https://github.com/GCaggianese/llmrex)
+
+## Qué es
+
+Un framework pequeño para conectar LLMs locales a juegos de terminal como agentes en vivo.
+
+El primer objetivo es un fork de [SATYADAHAL/termrex](https://github.com/SATYADAHAL/termrex), un port en C++ para terminal del juego del dinosaurio de Chrome. El controlador y el parser están escritos en [D](https://dlang.org/). GNU Screen provee el backbone IPC, exponiendo tanto inyección de teclas como captura en vivo del contenido de la terminal.
+
+El modelo puede correr localmente mediante Ollama (recomendado) o mediante un backend hosted como Gemini 2.5 Flash.
+
+## Por qué existe este proyecto
+
+La mayoría de los "LLM agents" operan en entornos de alta latencia con grandes presupuestos de inferencia.
+
+Este proyecto explora la restricción opuesta:
+
+- loops ajustados en tiempo real
+- inferencia local solo CPU
+- extracción simbólica mínima del estado
+- serialización determinista de acciones
+- IPC de baja latencia entre sistemas
+
+El problema interesante no es el juego del dinosaurio en sí, sino construir un loop de agente confiable en tiempo real alrededor de un modelo local muy pequeño.
+
+## Tres problemas que resuelve el sistema
+
+1. Capturar estado de juego en vivo desde una aplicación de terminal en ejecución
+2. Inyectar acciones de vuelta en el juego en tiempo real
+3. Mantener el loop completo de inferencia dentro de un presupuesto de latencia práctico
+
+## Arquitectura
+
+![mermaid](../assets/llmrex_mermaid.png)
+
+## Cómo funciona
+
+### GNU Screen como backbone IPC
+
+Las sesiones nombradas de GNU Screen proveen exactamente las dos primitivas necesarias:
+
+* `screen -X stuff " "` inyecta una tecla en la sesión
+* `screen -X hardcopy <file>` vuelca el contenido visible actual de la terminal a un archivo
+
+Eso crea un canal bidireccional completo:
+
+* leer estado hacia afuera
+* empujar input de vuelta hacia adentro
+
+No hace falta una capa IPC custom, y el juego en sí no necesita exponer ningún estado interno.
+
+Usar Screen como capa de transporte fue la decisión arquitectónica clave que hizo práctico el proyecto con mínima complejidad.
+
+### Bajar la velocidad del juego
+
+Los ports comunitarios de terminal del juego del dinosaurio corren demasiado rápido para inferencia local práctica solo CPU.
+
+La solución fue modificar el timing interno de termrex y el rate del paso de física. El manejo de input estaba parcialmente atado al loop de refresco de frames, así que bajar la velocidad del juego también rompió la respuesta a teclas. Hubo que desacoplar y reescribir parcialmente el loop de input.
+
+Los enemigos voladores se deshabilitan en runtime mediante:
+
+```bash
+--no-obstacle-dino
+```
+
+Esto restringe intencionalmente el espacio de acciones a una única decisión binaria:
+
+* saltar
+* esperar
+
+El objetivo es demostrar un loop de inferencia realtime estable, no maximizar la complejidad del gameplay.
+
+### El parser: de ASCII art a estado simbólico
+
+`parser.d` extrae una única señal de distancia desde el snapshot en vivo de la terminal:
+
+1. Encontrar el borde inferior del frame del juego (`╰`)
+2. Leer la fila del campo de juego
+3. Buscar firmas de cactus (`||_`, `| |`)
+4. Calcular la distancia desde el dinosaurio al obstáculo más cercano
+
+La salida es simplemente:
+
+* una distancia en caracteres
+* o `-1` si no hay nada visible
+
+El modelo nunca ve directamente el render ASCII.
+
+No se requiere procesamiento de imágenes ni razonamiento espacial.
+
+### Por qué un LLM local
+
+Las APIs hosted encajan mal con loops realtime ajustados:
+
+* rate limits
+* latencia de red
+* tiempos de respuesta largos
+* demoras de inferencia impredecibles
+
+Una sola respuesta hosted puede tardar más que varios obstáculos del juego.
+
+La inferencia local elimina esas restricciones por completo, pero introduce otra:
+
+el modelo tiene que ser extremadamente pequeño y rápido.
+
+El hardware objetivo es:
+
+* Intel i7 de 11a generación
+* 32GB DDR4
+* sin GPU
+
+## Resultados de prueba de modelos
+
+Se probaron varios modelos mediante Ollama.
+
+### IBM Granite 4 (1B quantized)
+
+Mejor resultado práctico.
+
+* suficientemente rápido para juego en tiempo real
+* formato JSON confiable
+* comportamiento estable bajo loops repetidos
+
+### Variantes reasoning de Qwen
+
+Más capaces para razonar, pero inadecuadas para tiempo real.
+
+El modelo entraba frecuentemente en secuencias extendidas de razonamiento, convirtiendo acciones simples en pausas de varios minutos.
+
+### Modelos sub-1B más pequeños
+
+Demasiado poco confiables generando salida consistente y parseable.
+
+### Backend hosted: Gemini 2.5 Flash
+
+Soportado principalmente para experimentación y comparación.
+
+El camino hosted respeta límites de API mediante demoras forzadas entre acciones.
+
+## El prompt de "logic gate"
+
+El diseño inicial pasaba frames ASCII crudos directamente al modelo.
+
+Los modelos locales pequeños rendían mal interpretando layouts espaciales.
+
+La solución fue mover la mayor parte de la toma de decisiones a preprocesamiento determinista.
+
+El parser convierte la distancia al obstáculo en estados simbólicos de sensor:
+
+* `URGENT`
+* `WARNING`
+* `SAFE`
+
+Después el modelo se encuadra explícitamente como una compuerta lógica determinista:
+
+```text
+System: You are a machine logic gate. Output ONLY JSON.
+Rule 1: If SENSOR is URGENT, you must output the JUMP JSON.
+Rule 2: If SENSOR is SAFE or WARNING, you must output the WAIT JSON.
+
+Input MAP:    YOU-DISTANCE-15-D-DEAD
+Input SENSOR: URGENT
+
+JUMP JSON: {"dinosaur_game": "jump", "args": true}
+WAIT JSON: {"dinosaur_game": "wait", "args": false}
+
+Output:
+```
+
+Esto intercambia deliberadamente "inteligencia" del modelo por confiabilidad.
+
+La mayor parte del razonamiento ocurre en la capa del parser; el trabajo del modelo pasa a ser serialización consistente de acciones bajo restricciones estrictas de latencia.
+
+Ese trade-off es lo que permite que un modelo local de 1B opere en un loop realtime sobre hardware solo CPU.
+
+## Correrlo
+
+### Dependencias
+
+* Linux
+* [GNU Screen](https://www.gnu.org/software/screen/)
+* Un compilador D (`dmd`, `ldc2` o `gdc`)
+* [Ollama](https://ollama.com/)
+
+Opcional:
+
+* `GEMINI_API_KEY` para inferencia hosted
+
+## Setup
+
+```bash
+# 1. Pull the local model
+ollama pull granite4:1b
+
+# 2. Clone this repository
+git clone <REPO_URL>
+cd llmrex
+
+# 3. Build the patched termrex
+cd termrex
+make
+
+# 4. Build the agent
+cd ..
+mkdir -p build
+dmd -of=build/agent agent.d parser.d -L-lcurl
+```
+
+## Jugar
+
+### Terminal A — iniciar el juego
+
+```bash
+screen -S dino
+./termrex/build/termrex \
+    --ascii-only \
+    --no-obstacle-dino \
+    --skip-intro
+```
+
+### Terminal B — correr el agente
+
+No te olvides de habilitar ollama
+``` bash
+ollama serve &
+```
+
+```bash
+./build/agent \
+    --ollama \
+    --model granite4:1b \
+    --urgent 35 # adjust the offset to match the inference delay of your setup
+```
+
+## Flags CLI
+
+* `--ollama`
+  Usar el backend local de Ollama
+
+* `--model <name>`
+  Tag del modelo de Ollama (default: `granite4:1b`)
+
+* `--urgent <n>`
+  Umbral de distancia en caracteres para disparar un salto
+
+* `--dir <path>`
+  Ruta raíz del proyecto para generar snapshots
+
+## Backend Gemini
+
+Exportar una API key de Gemini y omitir `--ollama`:
+
+```bash
+export GEMINI_API_KEY=...
+```
+
+## Limitaciones y trabajo futuro
+
+### Timing calibrado a mano
+
+La velocidad actual del juego está calibrada manualmente para el hardware y modelo probados.
+
+Un sistema mejor debería:
+
+* medir tokens/sec al inicio
+* ajustar dinámicamente la velocidad del juego
+* adaptar automáticamente el pacing de inferencia
+
+### Prompts sin estado
+
+El modelo no recibe memoria entre frames.
+
+Un contexto limitado de corto plazo podría mejorar la consistencia de predicción y timing.
+
+### Gameplay de una sola acción
+
+Los enemigos voladores están deshabilitados para mantener el espacio de acciones binario.
+
+Soportarlos requeriría:
+
+* detección de altura en el parser
+* canales de sensor adicionales
+* una segunda acción (`duck`)
+
+### Arquitectura pesada en parser
+
+La mayor parte del razonamiento ocurre actualmente antes de la inferencia.
+
+Esto es intencional: permite que modelos pequeños se comporten confiablemente en tiempo real.
+
+Modelos locales más capaces podrían mover parte de la toma de decisiones de vuelta a la capa de inferencia.
+
+## Créditos
+
+* Juego upstream: [SATYADAHAL/termrex](https://github.com/SATYADAHAL/termrex)
+* Inferencia local: [Ollama](https://ollama.com/)
+* Modelo: [IBM Granite](https://www.ibm.com/granite)
+* Backend hosted opcional: Gemini 2.5 Flash

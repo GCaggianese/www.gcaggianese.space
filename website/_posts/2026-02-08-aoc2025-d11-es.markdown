@@ -1,0 +1,134 @@
+---
+layout: post
+title: "Advent of Code 2025 - Dia 11 en Nim"
+date: 2026-02-08 17:00:17 -0300
+lang: es
+project-aoc2025: true
+permalink: /project/aoc2025-d11.html
+---
+
+"Menos mal que estás acá. Acabamos de instalar un nuevo rack de servidores, pero no tenemos suerte logrando que el reactor se comunique con él."
+
+> Traducción de <a {% static_href %}href="/project/aoc2025-d11.html"{% endstatic_href %}>la publicación original en inglés</a>.
+
+**Github**: *[GCaggianese/AoC-2025/D11](https://github.com/GCaggianese/AoC-2025/tree/master/D11)*
+   - [Nim Programming Language](https://nim-lang.org/)
+
+# Puzzle [Dia 11: Reactor](https://adventofcode.com/2025/day/11)
+
+## Parte uno
+
+Contar todas las expansiones posibles desde `you` hasta `out`.
+
+### Modelo
+
+El input es un **grafo dirigido** de reglas de reescritura:
+
+* Cada línea: `lhs: rhs1 rhs2 ...`
+* Significado: desde el nodo `lhs` se puede saltar a cualquier `rhs*`
+* `out` es un sink terminal
+
+### Algoritmo (DFS sobre el grafo)
+
+1. **Parsear input** en lista de adyacencia `Graph: node -> [next_nodes]`
+2. **DFS** desde el nodo inicial `"you"`
+3. Mantener `onStack` para evitar recursión infinita en ciclos (cuenta sólo **caminos simples**)
+4. Cada vez que DFS llega a `out`, incrementar `count`
+
+### DFS central
+
+```nim
+proc dfsCountAll(g: Graph, node: string, onStack: var HashSet[string], outCount: var int64) =
+  if node == "out":
+    inc outCount
+    return
+  if node in onStack:
+    return
+
+  onStack.incl node
+  for nxt in g.getOrDefault(node, @[]):
+    dfsCountAll(g, nxt, onStack, outCount)
+  onStack.excl node
+```
+
+## Parte dos
+
+Contar caminos desde `svr` hasta `out` que incluyan **ambos** `fft` y `dac`.
+
+Respuesta final (mi input): `462444153119850`
+
+### Por qué muere el enfoque ingenuo
+
+Guardar todos los caminos completos (`seq[seq[string]]`) explota la memoria porque la cantidad de caminos es enorme (a menudo exponencial).
+
+### Algoritmo (DP sobre un DAG con estado de 2 bits)
+
+Si el grafo es acíclico (DAG), se pueden contar caminos sin enumerarlos.
+
+Estado:
+
+* `mask` bit 0: ya vimos `fft`?
+* `mask` bit 1: ya vimos `dac`?
+
+Recurrencia DP:
+
+* `dp(node, mask)` = suma sobre hijos `dp(child, mask')`
+* donde `mask' = mask OR flags(node)`
+* caso base en `out`: devolver `1` si `mask == 3`; si no, `0`
+
+Clave de memoización: `(node, mask)`.
+
+### Núcleo DP
+
+```nim
+# mask bit0 = seen fft, bit1 = seen dac
+proc countMaskDP(
+  g: Graph,
+  node: string,
+  maskIn: int,
+  memo: var Table[(string, int), int64]
+): int64 =
+  let key = (node, maskIn)
+  if memo.hasKey(key): return memo[key]
+
+  var mask = maskIn
+  if node == "fft": mask = mask or 1
+  if node == "dac": mask = mask or 2
+
+  if node == "out":
+    return (if (mask and 3) == 3: 1 else: 0)
+
+  var acc: int64 = 0
+  for nxt in g.getOrDefault(node, @[]):
+    acc += countMaskDP(g, nxt, mask, memo)
+
+  memo[key] = acc
+  acc
+```
+
+### Notas
+
+- Si el grafo contiene ciclos, este DP no es válido para "caminos simples"; la implementación cae a DFS podado.
+- Usar `int64` es necesario: los resultados pueden ser enormes (este es `4.6e14`).
+
+## Complejidad
+
+Sea:
+
+- `V` = cantidad de nodos
+- `E` = cantidad de aristas
+
+Parte 1 (DFS, caminos simples): peor caso exponencial en branching (en la práctica ok si el subgrafo alcanzable es pequeño).
+
+Parte 2 (DP en DAG):
+
+- Estados: `4 * V` (porque mask ∈ {0,1,2,3})
+- Transiciones: cada arista se procesa por máscara -> `O(4E)` tiempo
+- Memoria: `O(4V)` para la tabla de memoización
+
+## Implementación en Nim
+
+Ejecutar con:
+
+`nimble run`
+

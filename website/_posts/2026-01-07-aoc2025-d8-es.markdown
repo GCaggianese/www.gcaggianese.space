@@ -1,0 +1,107 @@
+---
+layout: post
+title: "Advent of Code 2025 - Dia 8 en Ada"
+date: 2026-01-14 23:51:43 -0300
+lang: es
+project-aoc2025: true
+permalink: /project/aoc2025-d8.html
+---
+
+"Los Elfos tenían razón; definitivamente no tienen suficientes alargues."
+
+> Traducción de <a {% static_href %}href="/project/aoc2025-d8.html"{% endstatic_href %}>la publicación original en inglés</a>.
+
+**Github**: *[GCaggianese/AoC-2025/D8](https://github.com/GCaggianese/AoC-2025/tree/master/D8)*
+   - [Ada Resource Association](https://www.adaic.org/)
+
+# Puzzle [Dia 8: Playground](https://adventofcode.com/2025/day/8)
+
+## Parte uno
+
+Conectar los 1000 pares de cajas de empalme con las **distancias euclidianas más cortas**.
+
+### Algoritmo (MST de Kruskal)
+
+[Wikipedia: Kruskal's Algorithm](https://en.wikipedia.org/wiki/Kruskal's_algorithm)
+
+1. **Parsear input**: leer N cajas de empalme como puntos 3D $(x_i, y_i, z_i)$
+2. **Generar todas las aristas**: para cada par $(i, j)$ donde $i < j$:
+   $$d_{i,j} = \sqrt{(x_i - x_j)^2 + (y_i - y_j)^2 + (z_i - z_j)^2}$$
+3. **Ordenar aristas** por distancia (ascendente)
+4. **Procesar las primeras 1000 aristas** usando Union-Find:
+   - Si $\text{find}(i) \neq \text{find}(j)$ -> fusionar circuitos
+   - Si $\text{find}(i) = \text{find}(j)$ -> omitir (redundante)
+5. **Contar tamaños de circuitos**: agrupar cajas por raíz
+6. **Respuesta**: multiplicar los 3 tamaños de circuito más grandes
+
+### Ejemplo
+
+Después de 10 aristas:
+
+```
+Inicial: 20 cajas, 20 circuitos separados
+Procesar 10 aristas -> 9 fusiones exitosas (1 redundante)
+Resultado: 11 circuitos con tamaños [1,1,1,1,1,1,1,2,2,4,5]
+Respuesta: 5 × 4 × 2 = 40
+```
+
+## Parte dos
+
+Continuar conectando hasta que **todas las cajas estén en un solo circuito**.
+
+### Algoritmo
+
+Igual que la parte 1, pero:
+- No detenerse en 1000 aristas
+- Llevar `num_circuits = N` (inicialmente N circuitos separados)
+- Cada fusión: `num_circuits -= 1`
+- Cuando `num_circuits = 1` -> **detenerse**
+- **Respuesta**: multiplicar las coordenadas X de las dos cajas de la arista final
+
+### Ejemplo
+
+```
+Última conexión: cajas en (216, 817, 812) y (117, 168, 530)
+Respuesta: 216 × 117 = 25272
+```
+
+## Implementación Union-Find
+
+**Find con compresión de camino**:
+
+```ada
+function Find(Parent: in out Parent_Array; X: Natural) return Natural is
+begin
+   if Parent(X) = X then
+      return X;
+   else
+      Parent(X) := Find(Parent, Parent(X));  -- Path compression
+      return Parent(X);
+   end if;
+end Find;
+```
+
+**Union**:
+
+```ada
+procedure Union(Parent: in out Parent_Array; X, Y: Natural) is
+   Root_X : constant Natural := Find(Parent, X);
+   Root_Y : constant Natural := Find(Parent, Y);
+begin
+   if Root_X /= Root_Y then
+      Parent(Root_X) := Root_Y;
+   end if;
+end Union;
+```
+
+## Complejidad
+
+- **Aristas**: $\binom{N}{2} = \frac{N(N-1)}{2}$ (para N ≈ 1800 -> 1.6M aristas)
+- **Ordenamiento**: $O(E \log E)$ donde $E = \frac{N(N-1)}{2}$
+- **Union-Find**: $O(E \cdot \alpha(N))$ donde $\alpha$ es la inversa de Ackermann (≈ constante)
+- **Total**: $O(N^2 \log N)$
+
+## Implementación en Ada
+
+Ejecutar con `alr build && alr run`
+

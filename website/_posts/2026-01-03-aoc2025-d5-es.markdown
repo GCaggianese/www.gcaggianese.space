@@ -1,0 +1,110 @@
+---
+layout: post
+title: "Advent of Code 2025 - Dia 5 en GNU Guile"
+date: 2026-01-03 20:07:27 -0300
+lang: es
+project-aoc2025: true
+permalink: /project/aoc2025d5.html
+---
+
+"A este ritmo, no nos va a quedar tiempo para colgar las coronas en el comedor."
+
+> Traducción de <a {% static_href %}href="/project/aoc2025d5.html"{% endstatic_href %}>la publicación original en inglés</a>.
+
+**Github**: *[GCaggianese/AoC-2025/D5](https://github.com/GCaggianese/AoC-2025/tree/master/D5)*
+   - [GNU's Programming and Extension Language](https://www.gnu.org/software/guile/)
+
+# Puzzle: [Dia 5: Cafeteria](https://adventofcode.com/2025/day/5)
+
+## Parte uno
+
+### Problema
+
+Dado un archivo de entrada que contiene:
+
+-   Rangos con formato `start-end` (por ejemplo, `3-5`, `10-14`)
+-   Números individuales para revisar
+
+Contar cuántos números individuales caen dentro de cualquiera de los
+rangos definidos (inclusive).
+
+### Algoritmo
+
+1.  Parsear todos los rangos en una lista de pares `(start, end)`.
+2.  Para cada número individual:
+    1.  Revisar si cae dentro de algún rango: `start ≤ n ≤ end`.
+    2.  Si sí, incrementar el contador.
+3.  Devolver el contador final.
+
+### Notas de implementación (GNU Guile Scheme)
+
+1.  Enfoques fallidos
+
+    1.  Vector booleano
+
+        -   **Idea:** Crear un vector indexado por números y marcar
+            rangos como `#t`.
+        -   **Problema:** El input contiene números hasta `10^14`, lo
+            que requiere cantidades imposibles de RAM.
+        -   **Veredicto:** Funciona para casos de prueba pequeños, pero
+            explota catastróficamente con el input real.
+
+    2.  Tabla hash
+
+        -   **Idea:** Expandir rangos en entradas de una tabla hash para
+            lookup O(1).
+        -   **Problema:** Expandir rangos como `1-1000000000` crea
+            miles de millones de entradas.
+        -   **Resultado:** Nunca terminó de ejecutarse.
+        -   **Veredicto:** Inflado de memoria y desastre de rendimiento.
+
+2.  Solución final: revisar rangos
+
+    -   **Enfoque:** Guardar rangos como pares y revisar pertenencia
+        directamente.
+    -   **Complejidad:**
+        -   Espacio: O(R), donde R = cantidad de rangos (~1000)
+        -   Tiempo: O(V × R), donde V = valores a revisar (~200)
+    -   **Runtime:** Instantáneo (<1s)
+    -   **Idea clave:** No expandir rangos; revisar pertenencia
+        directamente.
+
+    > Elegí la estructura de datos correcta para el problema. La
+    > expansión prematura es la raíz de todos los males de memoria.
+
+## Parte dos
+
+### Problema
+
+-   Contar cuántos números únicos existen en todos los rangos definidos
+    (expandidos, sin repetición).
+
+-   No incluir los números individuales.
+
+### Solución
+
+1.  Parsear todos los rangos como pares `(start, end)` (igual que en la parte uno).
+2.  Ordenar los rangos por posición inicial.
+3.  Fusionar intervalos superpuestos y adyacentes:
+    -   Si `next.start ≤ current.end + 1`: fusionar en un solo rango.
+    -   Si no: mantener como rango separado.
+4.  Contar números en los rangos fusionados.
+    -   Sumar todos los conteos.
+
+### Implementación: fusión de intervalos
+
+-   **Enfoque:** No expandir rangos -> fusionar intervalos superpuestos y contar.
+-   **Complejidad:**
+    -   Espacio: O(R), donde R = cantidad de rangos
+    -   Tiempo: O(R log R) por ordenar + O(R) por fusionar = O(R log R)
+-   **Clave:** `[1, 1000000000]` son sólo 2 números para representar mil millones de valores.
+
+> Representación matemática >> expansión física. La clave es guardar la
+> abstracción.
+
+### Código
+
+``` scheme
+;; See aoc2025-d5.scm for full implementation
+```
+

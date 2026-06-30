@@ -1,0 +1,144 @@
+---
+layout: post
+title: "Advent of Code 2025 - Dia 2 en C"
+date: 2025-12-08 19:05:47 -0300
+lang: es
+project-aoc2025: true
+permalink: /project/aoc2025d2.html
+---
+
+Bienvenido al Polo Norte. Tu trabajo es encontrar todos los IDs inválidos que aparecen en los rangos dados.
+
+> Traducción de <a {% static_href %}href="/project/aoc2025d2.html"{% endstatic_href %}>la publicación original en inglés</a>.
+
+**Github**: *[GCaggianese/AoC-2025/D2](https://github.com/GCaggianese/AoC-2025/tree/master/D2)*
+   - [The C programming language](https://www.c-language.org/)
+
+# Puzzle [Dia 2: Gift Shop](https://adventofcode.com/2025/day/2)
+
+-   Valores II-FF separados por coma, donde II significa rango inicial y
+    FF el final (ambos incluidos).
+
+## Estructura de entrada
+
+-   Sin ceros iniciales
+-   II \< FF
+-   II está separado de FF por `-`
+-   **IDs inválidos**:
+    -   Patrones repetidos dentro del rango
+        -   Ej. 11-22: $\forall x \in [11,22] \cap \mathbb{N}^+$, acá
+            es fácil ver que los únicos pares de patrones repetidos son
+            11 y 22.
+        -   Ej. 11-33: $\forall x \in [11,33] \cap \mathbb{N}^+$, los
+            patrones repetidos ahora incluyen 33 \[11, 22, 33\].
+    -   Los números de **longitud impar** son **SIEMPRE válidos**
+        -   111 -> 3 dígitos -> no se puede dividir en pares (válido)
+        -   22022 -> 5 dígitos -> lo mismo (válido)
+
+## Parte 1: números palindrómicos pares
+
+-   El enfoque es reconocer que los "IDs inválidos" son números que se
+    pueden expresar como dos partes idénticas.
+-   Podemos generarlos con la fórmula:
+    $\text{Invalid} = d \times (10^n + 1)$ donde:
+    -   **n** es la mitad de la cantidad de dígitos
+    -   **d** es un número base de n dígitos
+
+1.  Matemática detrás:
+
+    -   Para que un número de 2n dígitos sea "inválido", basta con que
+        $\text{left-part} = \text{right-part}$.
+    -   Esto se expresa como: $\text{number} = d \times 10^n + d$
+        $\text{number} = d(10^n + 1)$
+    -   Donde d es la "base" de n dígitos que se repite.
+
+2.  Ejemplos por dígitos:
+
+    1.  2 dígitos (n=1):
+
+        -   Este caso es elemental: sólo múltiplos de 11.
+
+    2.  4 dígitos (n=2):
+
+        -   Multiplicador: $10^2 + 1 = 101$
+        -   Valores válidos de d: ${10, 11, ..., 99}$
+        -   IDs inválidos: $1010, 1111, 1212, ..., 9999$
+        -   Ej.: $1111 = 11 × 101$
+
+    3.  6 dígitos (n=3):
+
+        -   ... misma lógica que n=2 ...
+
+    4.  8 dígitos (n=4):
+
+        -   ... misma lógica que n=3 ...
+
+    5.  10 dígitos (n=5):
+
+        -   Multiplicador: $10^5 + 1 = 100001$
+        -   Valores válidos de d: ${10000, 10001, ..., 99999}$
+        -   Ej.: $1188511885 = 11885 × 100001$
+
+3.  Algoritmo de detección:
+
+    Para cualquier `value` dado:
+
+    1.  Calcular la cantidad de dígitos:
+        $\text{digits} = \lfloor \log_{10}(\text{value}) \rfloor + 1$
+    2.  Revisar si es par:
+        $\text{digits} \equiv 1 \pmod{2} \implies \text{valid (skip)}$
+    3.  Calcular el multiplicador:
+        $M = 10^{n} + 1 \quad \text{where} \quad n = \frac{\text{digits}}{2}$
+    4.  Probar divisibilidad:
+        $\text{value} \equiv 0 \pmod{M} \implies \text{invalid}$
+
+4.  Los números con cantidad impar de dígitos siempre son válidos:
+
+    -   Cualquier número con cantidad impar de dígitos no puede partirse
+        en dos partes.
+    -   Ej.: 111, 212, 11011 tienen 3 o 5 dígitos.
+    -   No hay forma de expresarlos como
+        $d \times (10^n + 1)\quad \text{where}\ n = \frac{\text{digits}}{2}$
+    -   Por lo tanto, **todos los números de longitud impar son válidos**.
+
+5.  Entonces:
+
+    -   No hace falta revisar cada dígito manualmente.
+    -   Complejidad temporal: O(1) por número.
+
+## Parte 2: repeticiones múltiples
+
+-   Ahora los IDs inválidos incluyen patrones repetidos **al menos dos veces** (no sólo exactamente dos veces).
+-   Ejemplos: `111` (1×3), `123123123` (123×3), `1212121212` (12×5)
+
+1. Fórmula extendida:
+
+Para un patrón de longitud $p$ repetido $k$ veces:
+
+$$\text{number} = s \times \frac{10^{k \cdot p} - 1}{10^p - 1}$$
+
+Donde:
+-   $s$ es el patrón base ($p$ dígitos)
+-   $k \geq 2$ es la cantidad de repeticiones
+-   Dígitos totales: $d = k \times p$
+
+2. Algoritmo de detección:
+
+Para un número con $d$ dígitos:
+
+1.  Encontrar todos los divisores de $d$ (excluyendo $d$): son las longitudes posibles del patrón.
+2.  Para cada divisor $p$ donde $p < d$:
+    -   Calcular $k = d / p$ (cantidad de repeticiones)
+    -   Calcular multiplicador: $M = \frac{10^d - 1}{10^p - 1}$
+    -   Revisar si $\text{value} \equiv 0 \pmod{M}$
+    -   Verificar que el patrón tenga exactamente $p$ dígitos (sin ceros iniciales)
+    -   Si ambas condiciones son ciertas -> **inválido**
+
+3. Entonces:
+-   Encontrar divisores: $O(\sqrt{d})$ donde $d = \lfloor \log_{10}(\text{value}) \rfloor + 1$
+
+# Solución usando C
+
+Construí la solución usando C y el genial [nob.h](https://github.com/tsoding/nob.h) como *no-build system*.
+Si querés ejecutarla, basta con bootstrappear `nob.c` y después correr `./nob`; eso compila la solución, que luego se puede ejecutar con `./build/AoC-2025_D2`.
+

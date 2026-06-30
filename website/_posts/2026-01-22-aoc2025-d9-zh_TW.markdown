@@ -1,0 +1,96 @@
+---
+layout: post
+title: "Advent of Code 2025 - 第 9 天：Gambit Scheme"
+date: 2026-01-22 16:14:06 -0300
+lang: zh_TW
+project-aoc2025: true
+permalink: /project/aoc2025-d9.html
+---
+
+「你從遊樂場角落的消防滑桿滑下來，落在北極基地的電影院裡！」
+
+> 本文翻譯自<a {% static_href %}href="/project/aoc2025-d9.html"{% endstatic_href %}>英文原文</a>。
+
+**Github**: *[GCaggianese/AoC-2025/D9](https://github.com/GCaggianese/AoC-2025/tree/master/D9)*
+   - [Gambit Scheme](https://gambitscheme.org/)
+
+# 題目 [第 9 天：Movie Theater](https://adventofcode.com/2025/day/9)
+
+## 第一部分
+
+使用任兩個「紅色 tiles」（輸入座標）作為對角，找出最大的矩形。
+
+* **輸入**：座標列表 $(x, y)$。
+* **度量**：面積包含邊界 tiles。
+    $$Area = (|x_1 - x_2| + 1) \times (|y_1 - y_2| + 1)$$
+* **演算法**：對所有 pairs 做 $O(N^2)$ 暴力比較。
+
+## 第二部分
+
+紅色 tiles 形成由「綠色 tiles」（直角線段）連接的順序路徑（loop）。
+有效矩形必須完全由位於該多邊形內部或邊界上的 tiles 組成。
+
+### 限制
+
+對由角點 $P_i, P_j$ 定義的矩形而言，要有效必須滿足：
+
+1.  **角點**：4 個角都必須在多邊形內部或邊界上。
+2.  **邊**：沒有任何多邊形線段能穿過矩形的*內部*。
+
+### 演算法
+
+1.  **多邊形建構**：依序連接輸入點 $P_0 \to P_1 \to \dots \to P_n \to P_0$。
+2.  **Ray Casting**：使用 even-odd rule 判斷點是否在多邊形內。
+    * *修正*：剛好落在水平/垂直線段上的點也有效（Green）。
+3.  **驗證**：迭代所有 pairs $(P_i, P_j)$。若面積大於目前最大值，就驗證幾何限制。
+
+### 手動分析
+
+驗證範例點的向量距離與面積：
+
+$$ \vec{V}_1, \vec{V}_2, \vec{V}_3\ : $$
+
+$$
+\begin{aligned}
+\vec{V}_1 &= [3, 1] \\
+\vec{V}_2 &= [2, 5] \\
+\vec{V}_3 &= [6, 3]
+\end{aligned}
+$$
+
+**距離檢查：**
+
+$$ |\vec{V}_1 - \vec{V}_3| = \sqrt{(3-6)^2 + (1-3)^2} = \sqrt{13} \approx 3.606 $$
+
+$$ |\vec{V}_1 - \vec{V}_2| = \sqrt{(3-2)^2 + (1-5)^2} = \sqrt{17} \approx 4.123 $$
+
+$$ |\vec{V}_2 - \vec{V}_3| = \sqrt{(2-6)^2 + (5-3)^2} = \sqrt{16+4} = \sqrt{20} \approx 4.472 $$
+
+**面積計算：**
+對由 $\vec{V}_1$ 和 $\vec{V}_3$ 定義的矩形：
+
+$$ Area = |3-6| \cdot |1-3| = 3 \cdot 2 = 6 $$
+
+### 多邊形軌跡
+
+輸入點形成直角 loop。連通性視覺化：
+
+```text
+(0,0) . . . . . . . . .
+. . . . . . . . . . . .
+. . P5----------P4. . .
+. . | . . . . . | . . .
+. . P6. . . . . P3. . .
+. . | . . . . . | . . .
+. . P7----------P2. . .
+. . . . . . . . | . . .
+. . . . . . . . P1--P0.
+
+```
+
+# Gambit Scheme 實作
+
+``` sh
+make && ./build/d9
+```
+

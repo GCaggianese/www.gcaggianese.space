@@ -1,0 +1,107 @@
+---
+layout: post
+title: "Advent of Code 2025 - 第 8 天：Ada"
+date: 2026-01-14 23:51:43 -0300
+lang: zh_TW
+project-aoc2025: true
+permalink: /project/aoc2025-d8.html
+---
+
+「精靈們是對的；他們絕對沒有足夠的延長線。」
+
+> 本文翻譯自<a {% static_href %}href="/project/aoc2025-d8.html"{% endstatic_href %}>英文原文</a>。
+
+**Github**: *[GCaggianese/AoC-2025/D8](https://github.com/GCaggianese/AoC-2025/tree/master/D8)*
+   - [Ada Resource Association](https://www.adaic.org/)
+
+# 題目 [第 8 天：Playground](https://adventofcode.com/2025/day/8)
+
+## 第一部分
+
+用**最短的歐幾里得距離**連接 1000 對 junction boxes。
+
+### 演算法（Kruskal 的 MST）
+
+[Wikipedia: Kruskal's Algorithm](https://en.wikipedia.org/wiki/Kruskal's_algorithm)
+
+1. **解析輸入**：將 N 個 junction boxes 讀成 3D 點 $(x_i, y_i, z_i)$
+2. **產生所有邊**：對每對 $(i, j)$ 且 $i < j$：
+   $$d_{i,j} = \sqrt{(x_i - x_j)^2 + (y_i - y_j)^2 + (z_i - z_j)^2}$$
+3. **依距離排序邊**（升冪）
+4. **使用 Union-Find 處理前 1000 條邊**：
+   - 若 $\text{find}(i) \neq \text{find}(j)$ -> 合併電路
+   - 若 $\text{find}(i) = \text{find}(j)$ -> 跳過（冗餘）
+5. **計算電路大小**：依 root 分組 boxes
+6. **答案**：將最大的 3 個電路大小相乘
+
+### 範例
+
+10 條邊之後：
+
+```
+Initial: 20 boxes, 20 separate circuits
+Process 10 edges → 9 successful merges (1 redundant)
+Result: 11 circuits with sizes [1,1,1,1,1,1,1,2,2,4,5]
+Answer: 5 × 4 × 2 = 40
+```
+
+## 第二部分
+
+繼續連接，直到**所有 boxes 都在同一個電路中**。
+
+### 演算法
+
+與第一部分相同，但：
+- 不在 1000 條邊時停止
+- 追蹤 `num_circuits = N`（一開始有 N 個分離電路）
+- 每次合併：`num_circuits -= 1`
+- 當 `num_circuits = 1` -> **停止**
+- **答案**：將最後一條邊的兩個 boxes 的 X 座標相乘
+
+### 範例
+
+```
+Last connection: boxes at (216, 817, 812) and (117, 168, 530)
+Answer: 216 × 117 = 25272
+```
+
+## Union-Find 實作
+
+**帶路徑壓縮的 Find**：
+
+```ada
+function Find(Parent: in out Parent_Array; X: Natural) return Natural is
+begin
+   if Parent(X) = X then
+      return X;
+   else
+      Parent(X) := Find(Parent, Parent(X));  -- Path compression
+      return Parent(X);
+   end if;
+end Find;
+```
+
+**Union**：
+
+```ada
+procedure Union(Parent: in out Parent_Array; X, Y: Natural) is
+   Root_X : constant Natural := Find(Parent, X);
+   Root_Y : constant Natural := Find(Parent, Y);
+begin
+   if Root_X /= Root_Y then
+      Parent(Root_X) := Root_Y;
+   end if;
+end Union;
+```
+
+## 複雜度
+
+- **邊數**：$\binom{N}{2} = \frac{N(N-1)}{2}$（N ≈ 1800 時約 1.6M 條邊）
+- **排序**：$O(E \log E)$，其中 $E = \frac{N(N-1)}{2}$
+- **Union-Find**：$O(E \cdot \alpha(N))$，其中 $\alpha$ 是 inverse Ackermann（約為常數）
+- **總計**：$O(N^2 \log N)$
+
+## Ada 實作
+
+使用 `alr build && alr run` 執行。
+

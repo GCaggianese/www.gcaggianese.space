@@ -1,0 +1,148 @@
+---
+layout: post
+title: "Advent of Code 2025 - Dia 12 en Python"
+date: 2026-02-19 00:34:34 -0300
+lang: es
+project-aoc2025: true
+permalink: /project/aoc2025d12.html
+---
+
+"Después de golpearte por unos minutos, salís a una caverna grande y bien iluminada llena de árboles de Navidad."
+
+> Traducción de <a {% static_href %}href="/project/aoc2025d12.html"{% endstatic_href %}>la publicación original en inglés</a>.
+
+**Github**: *[GCaggianese/AoC-2025/D12](https://github.com/GCaggianese/AoC-2025/tree/master/D12)*
+   - [Welcome to Python.org](https://www.python.org/)
+
+# Puzzle [Dia 12: Christmas Tree Farm](https://adventofcode.com/2025/day/12)
+
+Este proyecto resuelve un problema de empaquetado restringido en grillas pequeñas.
+
+Dado:
+
+* Un conjunto fijo de piezas binarias 3×3 (`#` = ocupado, `.` = vacío)
+* Una lista de tamaños de tablero
+* Para cada tamaño de tablero, uno o más *escenarios* que especifican cuántas copias de cada pieza deben colocarse
+
+El programa determina **qué escenarios son factibles**, es decir, si las piezas requeridas pueden colocarse en el tablero **sin superponerse**, permitiendo **rotaciones pero no reflexiones**.
+
+---
+
+## Estructura del problema
+
+El input se divide en dos secciones lógicas.
+
+### 1. Definiciones de piezas
+
+Cada pieza se define como una grilla 3×3:
+
+```
+0:
+###
+##.
+##.
+
+1:
+###
+##.
+.##
+```
+
+Las piezas se indexan por orden de aparición (`0, 1, 2, ...`).
+
+Internamente:
+
+* `#` -> 1
+* `.` -> 0
+* Cada pieza se representa como un conjunto de coordenadas ocupadas
+
+### 2. Escenarios de requerimientos
+
+Cada línea define un *escenario* para un tamaño de tablero:
+
+```
+4x4: 0 0 0 0 2 0
+12x5: 1 0 1 0 2 2
+12x5: 1 0 1 0 3 2
+```
+
+Significado:
+
+* El tamaño del tablero es `HxW`
+* Los números especifican cuántas copias de cada pieza deben colocarse
+* Varias líneas con el mismo tamaño de tablero son **escenarios independientes**, no errores
+
+---
+
+## Resumen del algoritmo
+
+Esto no es un solver geométrico. Todo se reduce a **lógica de bitmasks**.
+
+### Ideas centrales
+
+* Cada celda del tablero corresponde a **un bit** en un entero
+* Una colocación de una pieza es una bitmask con bits encendidos para celdas ocupadas
+* Dos colocaciones se superponen **si y sólo si** `mask1 & mask2 != 0`
+
+### Pasos
+
+1. Convertir cada pieza 3×3 en un conjunto de coordenadas
+2. Generar todas las **rotaciones únicas** (0°, 90°, 180°, 270°)
+3. Para un tamaño de tablero, generar **todas las colocaciones legales** de cada pieza
+4. Convertir cada colocación en una bitmask del tamaño del tablero
+5. Para cada escenario:
+
+   * Expandir conteos de piezas en una lista de IDs de piezas
+   * Ordenar piezas por cantidad de colocaciones (heurística fail-fast)
+   * Usar DFS + memoización para intentar colocar todas las piezas sin superposición
+
+---
+
+## [Por qué bitmasks?](https://www.gcaggianese.space/resource/bitmask_search.html)
+
+Convierten razonamiento espacial en álgebra booleana.
+
+* Chequeo de superposición: `O(1)`
+* Memoización de estado: `(piece_index, occupied_mask)`
+* Separación limpia entre *geometría* y *búsqueda*
+
+Este es el enfoque estándar para:
+
+* Tiling con polyominoes
+* Problemas de exact cover
+* Satisfacción de restricciones en grillas pequeñas
+
+---
+
+## Implementación en Python
+
+Crear el entorno:
+
+```bash
+mamba env create -f environment.yml
+mamba activate D12
+```
+
+Ejecutar el solver:
+
+```bash
+python -m D12
+```
+
+Va a:
+
+* Parsear el archivo `input.txt`
+* Listar todas las piezas
+* Listar todos los escenarios de requerimientos
+* Imprimir cuántos escenarios son factibles
+* Mostrar los índices de los casos factibles
+
+---
+
+## Notas y restricciones
+
+* Las piezas siempre son 3×3
+* Se permiten rotaciones, no reflexiones
+* Los tableros están vacíos (sin celdas bloqueadas)
+* El solver revisa **existencia**, no cantidad de soluciones
+

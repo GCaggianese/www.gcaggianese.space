@@ -1,0 +1,98 @@
+---
+layout: post
+title: "Advent of Code 2025 - Dia 9 en Gambit Scheme"
+date: 2026-01-22 16:14:06 -0300
+lang: es
+project-aoc2025: true
+permalink: /project/aoc2025-d9.html
+---
+
+"Te deslizás por el tubo de bomberos en la esquina del patio y aterrizás en el cine de la base del Polo Norte."
+
+> Traducción de <a {% static_href %}href="/project/aoc2025-d9.html"{% endstatic_href %}>la publicación original en inglés</a>.
+
+**Github**: *[GCaggianese/AoC-2025/D9](https://github.com/GCaggianese/AoC-2025/tree/master/D9)*
+   - [Gambit Scheme](https://gambitscheme.org/)
+
+# Puzzle [Dia 9: Movie Theater](https://adventofcode.com/2025/day/9)
+
+## Parte uno
+
+Encontrar el rectángulo más grande usando dos "baldosas rojas" (coordenadas de entrada) como esquinas opuestas.
+
+* **Input**: lista de coordenadas $(x, y)$.
+* **Métrica**: el área incluye las baldosas de borde.
+    $$Area = (|x_1 - x_2| + 1) \times (|y_1 - y_2| + 1)$$
+* **Algoritmo**: comparación brute-force $O(N^2)$ de todos los pares.
+
+## Parte dos
+
+Las baldosas rojas forman un camino secuencial (loop) conectado por
+"baldosas verdes" (segmentos rectilíneos). El rectángulo válido debe
+estar formado completamente por baldosas dentro o sobre el borde de este
+polígono.
+
+### Restricciones
+
+Para que un rectángulo definido por las esquinas $P_i, P_j$ sea válido:
+
+1.  **Esquinas**: las 4 esquinas deben estar dentro o sobre el borde del polígono.
+2.  **Bordes**: ningún segmento del polígono puede cruzar el *interior* del rectángulo.
+
+### Algoritmo
+
+1.  **Construcción del polígono**: conectar los puntos de entrada secuencialmente $P_0 \to P_1 \to \dots \to P_n \to P_0$.
+2.  **Ray Casting**: usar la regla par-impar para determinar si un punto está dentro del polígono.
+    * *Corrección*: los puntos exactamente sobre segmentos horizontales/verticales son válidos (Green).
+3.  **Validación**: iterar todos los pares $(P_i, P_j)$. Si el área es mayor que el máximo actual, validar las restricciones geométricas.
+
+### Análisis manual
+
+Verificación de distancias vectoriales y área para puntos de ejemplo:
+
+$$ \vec{V}_1, \vec{V}_2, \vec{V}_3\ : $$
+
+$$
+\begin{aligned}
+\vec{V}_1 &= [3, 1] \\
+\vec{V}_2 &= [2, 5] \\
+\vec{V}_3 &= [6, 3]
+\end{aligned}
+$$
+
+**Chequeos de distancia:**
+
+$$ |\vec{V}_1 - \vec{V}_3| = \sqrt{(3-6)^2 + (1-3)^2} = \sqrt{13} \approx 3.606 $$
+
+$$ |\vec{V}_1 - \vec{V}_2| = \sqrt{(3-2)^2 + (1-5)^2} = \sqrt{17} \approx 4.123 $$
+
+$$ |\vec{V}_2 - \vec{V}_3| = \sqrt{(2-6)^2 + (5-3)^2} = \sqrt{16+4} = \sqrt{20} \approx 4.472 $$
+
+**Cálculo de área:**
+Para el rectángulo definido por $\vec{V}_1$ y $\vec{V}_3$:
+
+$$ Area = |3-6| \cdot |1-3| = 3 \cdot 2 = 6 $$
+
+### Trazado del polígono
+
+Los puntos de entrada forman un loop rectilíneo. Visualización de la conectividad:
+
+```text
+(0,0) . . . . . . . . .
+. . . . . . . . . . . .
+. . P5----------P4. . .
+. . | . . . . . | . . .
+. . P6. . . . . P3. . .
+. . | . . . . . | . . .
+. . P7----------P2. . .
+. . . . . . . . | . . .
+. . . . . . . . P1--P0.
+
+```
+
+# Implementación en Gambit Scheme
+
+``` sh
+make && ./build/d9
+```
+

@@ -1,0 +1,59 @@
+---
+layout: post
+title: "Advent of Code 2025 - 第 7 天：Zig"
+date: 2026-01-07 14:14:07 -0300
+lang: zh_TW
+project-aoc2025: true
+permalink: /project/aoc2025-d7.html
+---
+
+「突然間，你發現自己在一個陌生的房間裡！這個房間沒有門。」
+
+> 本文翻譯自<a {% static_href %}href="/project/aoc2025-d7.html"{% endstatic_href %}>英文原文</a>。
+
+**Github**: *[GCaggianese/AoC-2025/D7](https://github.com/GCaggianese/AoC-2025/tree/master/D7)*
+   - [Zig Programming language](https://ziglang.org/)
+
+# 題目 [第 7 天：Laboratories](https://adventofcode.com/2025/day/7)
+
+## 第一部分
+
+由上往下處理。對每個格子 `a_{i,j}`：
+- `.` -> 不做事
+- `S` 或 `|` -> 查看 $a_{i+1,j}$（下方格子）：
+  - 如果是 `.` -> 改成 `|`
+  - 如果是 `^` -> $a_{i+1,j-1}$ 與 $a_{i+1,j+1}$ 變成 `|`
+    - **重要**：將 `^` 標記為已使用
+
+計算有多少個 `^` 分裂器被標記為已使用。
+
+## 第二部分
+
+當 `^` 分裂一次只朝**一個方向**前進時，計算所有可能的時間線。
+
+對每個格子 `a_{i,j}`：
+- `col >= cols` -> 回傳 1（路徑完成）
+- `row >= rows` -> 回傳 1（到達底部）
+- $a_{r,col}$ 是 `^` -> 遞迴：
+  - `countPaths(r+1, col-1)` + `countPaths(r+1, col+1)`
+  - 若 `col == 0` -> 左分支回傳 1（離開網格 = 完成）
+
+### 範例
+
+```
+.S.        .S.   .S.
+...   →    .|.   .|.
+.^.        |^.   .^|
+...        |..   ..|
+..^        |.^   .|^
+```
+
+左路徑：1（到達底部）
+右路徑：碰到 (4,2) 的 `^` -> 再次分裂 -> 2
+**總計：3 條時間線**
+
+### 最佳化
+
+使用 `HashMap(State, usize)` 做 memoization，其中 `State = {row, col}`。
+避免從同一位置重複計算路徑。
+

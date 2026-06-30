@@ -1,0 +1,189 @@
+---
+layout: post
+title: "Advent of Code 2025 - 第 10 天：Typescript 與 Rust"
+date: 2026-02-06 23:14:19 -0300
+lang: zh_TW
+project-aoc2025: true
+permalink: /project/aoc2025-d10.html
+---
+
+「精靈們確實有機器手冊，但詳細說明初始化程序的章節被一隻柴犬吃掉了。」
+
+> 本文翻譯自<a {% static_href %}href="/project/aoc2025-d10.html"{% endstatic_href %}>英文原文</a>。
+
+**Github**: *[GCaggianese/AoC-2025/D10](https://github.com/GCaggianese/AoC-2025/tree/master/D10)*
+   - [Javascript with syntax for types](https://www.typescriptlang.org/)
+   - [Rust Programming Language](https://rust-lang.org/)
+
+# 謎題 [第 10 天：Factory](https://adventofcode.com/2025/day/10)
+
+## 第一部分
+
+找出設定每台機器的指示燈，使其符合目標狀態所需的最少按鈕次數。
+
+* **輸入**：機器列表，每台機器包含：
+  * `[brackets]` 中的 indicator light diagram
+  * `(parentheses)` 中的 button wiring schematics
+  * `{curly braces}` 中的 joltage requirements（第一部分忽略）
+
+### Parsing Rules
+
+#### Target State（Indicator Lights）
+
+Indicator light diagram 表示想要的 binary state：
+* `.` → bit 是 `0`（off）
+* `#` → bit 是 `1`（on）
+
+**範例**：`[.##.]` → `0110`
+
+#### Button Mappings
+
+每個 button schematic 會列出它切換哪些 indicator lights（XOR operation）。Positions 是 zero-indexed：
+* `(3)` → 切換 position 3 → 只有 bit 3 被設定的 binary mask
+* `(0,2)` → 切換 positions 0 與 2 → bits 0 與 2 被設定的 binary mask
+
+Binary length 由 indicator lights 的數量決定。
+
+**4-bit target 範例** `[.##.]`：
+```
+(3)     → 0001  (position 3 set)
+(1,3)   → 0101  (positions 1, 3 set)
+(2)     → 0010  (position 2 set)
+(2,3)   → 0011  (positions 2, 3 set)
+(0,2)   → 1010  (positions 0, 2 set)
+(0,1)   → 1100  (positions 0, 1 set)
+```
+
+**6-bit target 範例** `[.###.#]`：
+```
+(0,1)   → 110000  (positions 0, 1 set)
+```
+
+### Problem Formulation
+
+給定：
+* Initial state：所有 lights off → `0000...0`
+* Target state：從 indicator diagram parse 而來
+* Available operations：與任意 button mask 做 XOR
+
+找出最少 button presses（buttons 的 subset），使得：
+
+$$\bigoplus_{b \in S} b = \text{target}$$
+
+其中 $S$ 是使用的 buttons subset，而每個 button 可以按 0 或 1 次（按兩次會互相抵消）。
+
+### Algorithm
+
+使用 dynamic programming 探索所有 reachable XOR states：
+
+1. 初始化 `reachable[0] = 0`（到達 state 0 需要 0 次按壓）
+2. 對每個 button mask $b$：
+   * 對 `reachable` 中的每個 state $s$：
+     * 計算 new state：$s' = s \oplus b$
+     * 更新：`reachable[s'] = min(reachable[s'] , reachable[s] + 1)`
+3. 回傳 `reachable[target]`
+
+**Complexity**：$O(n \times 2^k)$，其中 $n$ 是 buttons 數量，$k$ 是 bit length。
+
+### Example Solutions
+
+**Machine 1**：`[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1)`
+* Target：`0110`
+* Buttons：`{0001, 0101, 0010, 0011, 1010, 1100}`
+* Solution：`(0,2) ⊕ (0,1) = 1010 ⊕ 1100 = 0110`
+* **Minimum presses**：`2`
+
+**Machine 2**：`[...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4)`
+* Target：`00010`
+* **Minimum presses**：`3`
+
+**Machine 3**：`[.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2)`
+* Target：`011101`
+* **Minimum presses**：`2`
+
+## 第二部分
+
+計算滿足每台機器 joltage requirements 所需的最少 button presses。
+
+### Concept
+
+機器的 operating mode 從操作 bits（indicator lights）變成操作 integer counters（joltage levels）。
+
+* **Goal:** 符合 `{curly braces}` 中指定的 target integer values。
+* **Mechanism:**
+* 所有 counters 都從 0 開始。
+* 按下 button 會讓它接線到的特定 counters **增加** `1`。
+* 這是一個**加法** operation（Linear Algebra），不同於第一部分的 XOR operation。
+
+
+
+### Problem Formulation
+
+我們在解一個 linear equations system，其中 button vectors 必須加總成 target vector。
+
+給定：
+
+* 來自 `{...}` 的 target vector。
+* buttons，其中每個 button 都表示成一個 vector。
+* 如果 button 影響某個 counter，該位置為 1；否則為 0。
+
+
+
+找出非負整數 press counts，使其滿足系統。
+
+**Objective:** 最小化 total presses。
+
+
+### Algorithm
+
+因為 operations 是 linear，可以使用 **Gaussian Elimination** 解。
+
+1. **Matrix Construction**：建立 augmented matrix，其中 columns 是 button vectors。
+2. **Row Reduction**：進行 Gaussian elimination，把 matrix 轉成 Row Echelon Form。
+3. **Back Substitution**：解出 variables。
+* **Determined System**：如果有 unique solution，驗證所有值都是 non-negative integers。
+* **Under-determined System**：如果有 free variables（infinite solutions），對 free variables 做 bounded search，找出最小組合。
+
+
+4. **Verification**：確保計算出的 presses 是 integers（在 floating-point epsilon 內）且非負。
+
+### Example Solutions
+
+**Machine 1**：`[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}`
+
+* **Target**：`[3, 5, 4, 7]`
+* **Optimization**：
+* Button `(3)` 會影響 index 0（如果 indices reversed）或根據 mapping 影響 index 3。
+* Manual notes 中有一個 solution：按 `(3)` 1x、`(1,3)` 3x、`(2,3)` 3x、`(0,2)` 1x、`(0,1)` 2x。
+* Total presses: .
+
+
+* **Minimum presses**：`10`
+
+**Machine 2**：`[...#.] ... {7,5,12,7,2}`
+
+* **Target**：`[7, 5, 12, 7, 2]`
+* **Solution**：按 `(0,2,3,4)` 2x、`(2,3)` 5x、`(0,1,2)` 5x。
+* **Minimum presses**：`12`
+
+**Machine 3**：`[.###.#] ... {10,11,11,5,10,5}`
+
+* **Target**：`[10, 11, 11, 5, 10, 5]`
+* **Solution**：按 `(0,1,2,3,4)` 5x、`(0,1,2,4,5)` 5x、`(1,2)` 1x。
+* **Minimum presses**：`11`
+
+# Implementation
+
+## Part One：Typescript
+
+``` sh
+cd Part_One-Typescript/;
+yarn build && yarn start
+```
+
+## Part Two：Rust
+
+``` sh
+cd Part_Two-Rust/;
+RUSTFLAGS="-C target-cpu=native" cargo run --release
+```

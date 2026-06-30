@@ -1,0 +1,355 @@
+---
+layout: post
+title: "FSF40 3DLDF 套件 - Guix build 調查"
+date: 2025-11-22 17:07:27 -0300
+lang: zh_TW
+project: true
+permalink: /project/FSF40.html
+---
+
+3DLDF 是較舊的 GNU 專案，用於三維繪圖並輸出 MetaPost。Upstream build system 並不簡單：它依賴 CWEB tooling、autotools regeneration、generated headers、舊 C++ assumptions，以及無法乾淨映射到現代隔離 Guix build environment 的 database integration。
+
+> 本文翻譯自<a {% static_href %}href="/project/FSF40.html"{% endstatic_href %}>英文原文</a>。
+
+目標是記錄讓 3DLDF build 到足以產生最小可驗證輸出的工程路徑，同時辨識 proper packaging 還剩下的 blockers。
+
+**Github:** [GCaggianese/fsf40-3dldf-guix-build](https://github.com/GCaggianese/fsf40-3dldf-guix-build)
+
+**Codeberg**（工程筆記）：[GCaggianese/FSF40-3DLDF_package](https://codeberg.org/GCaggianese/FSF40-3DLDF_package)
+
+# 結果
+
+目前的 build process 能到達一條最小可運作的 `--no-database` path。
+
+`tests/test.ldf` 下的測試檔會產生 MetaPost output，接著可轉成 PDF 與 PNG。
+
+![Minimal 3DLDF output generated through
+MetaPost.](../assets/test-1-1.png)
+
+是的：artifact 是一條斜線。
+
+不過重要的是，歷史 3DLDF toolchain 已經被推進到足以完成一條真實 output pipeline：
+
+``` text
+3DLDF source -> MetaPost output -> PDF -> PNG
+```
+
+# 這個 repository 裡有什麼
+
+-   GNU 3DLDF 在 Guix 下的 build notes
+-   處理 3DLDF sources 所需的 patched `ctangle` workflow
+-   Autotools bootstrap notes
+-   Build 期間使用的 Guix shell environment
+-   MySQL/database-related blockers notes
+-   `tests/` 下的最小驗證測試輸出
+
+Repository layout：
+
+``` text
+.
+├── README.org
+└── tests
+    ├── ldf_1.log
+    ├── test.1
+    ├── test-1.pdf
+    ├── test-1-1.png
+    ├── test.ldf
+    ├── test.log
+    ├── test.mf
+    └── test.mp
+```
+
+# 為什麼這很有趣
+
+這不是一般「run configure and make」的 build。
+
+這個 build 需要處理：
+
+-   CWEB / `ctangle` limits
+-   generated source and header files
+-   autotools regeneration
+-   需要 permissive compiler flags 的舊 C++ code
+-   hardcoded MySQL assumptions
+-   Guix store paths 與 isolated build environments
+-   透過 `--no-database` 的 partial functionality
+
+工作中最相關的部分是 build archaeology：辨識歷史 toolchain 哪些部分仍然可用、哪些需要 patch，以及哪些部分需要 proper Guix packaging work。
+
+# 目前狀態
+
+專案已經 build 到足以用 `--no-database` 執行最小 3DLDF input file，並產生 MetaPost output。
+
+一個最小 diagonal-line test 被處理成 `test.mp` file，接著通過 `mptopdf`，產生預期的 PDF output。
+
+這確認至少一條小型 non-database path 可以通過程式運作。
+
+這**不**表示完整的 3DLDF system 已經被 package 或完全 functional。
+
+已知限制：
+
+-   Database functionality 尚不可用。
+-   3DLDF 似乎 hardcode MySQL access assumptions，例如 `/run/mysql`。
+-   一些 upstream example files 沒有成功手動 parse。
+-   Patched `ctangle` workflow 目前是手動的。
+-   目前流程只是 build investigation，不是 Guix package。
+
+# Patched ctangle
+
+3DLDF 需要比我環境中 stock build 更大的 `ctangle` configuration。
+
+Clone CWEB：
+
+``` bash
+git clone https://github.com/ascherer/cweb.git
+```
+
+修改 CWEB `Makefile`，讓 `RM` 與 `CP` 使用明確的 environment lookup：
+
+``` makefile
+RM= /usr/bin/env rm
+CP= /usr/bin/env cp
+```
+
+透過增加 internal limits 來 patch `ctangle.w`：
+
+``` c
+@ @d max_texts 10239 /* number of replacement texts, must be less than 10240 */
+@d max_toks 27000000 /* number of bytes in compressed \CEE/ code */
+```
+
+接著 build CWEB：
+
+``` bash
+make all
+```
+
+取得 patched `ctangle` 的絕對路徑：
+
+``` bash
+realpath ctangle
+```
+
+那個 path 稍後會在 build 3DLDF 時使用。
+
+更好的長期方案是把這個 patched `ctangle` package 成 temporary Guix input，或在 3DLDF package build 期間套用相關 CWEB change。
+
+# Guix shell environment
+
+3DLDF build 是在 pure Guix shell 中完成：
+
+``` bash
+guix shell \
+  libtool \
+  gsl \
+  mysql \
+  pkg-config \
+  gcc-toolchain@11.5.0 \
+  automake@1.16.5 \
+  flex \
+  bison \
+  coreutils \
+  sed \
+  grep \
+  gawk \
+  make \
+  bash \
+  m4 \
+  autoconf \
+  openssl \
+  glibc \
+  glib:bin \
+  findutils \
+  --pure -- bash --norc --noprofile
+```
+
+Patched `ctangle` 本身是在這個 pure shell 外、我的 base Guix system 上 build。
+
+透過正確 package patched CWEB tool，或透過 Guix build phase 注入 patched tool，應該可以避免這件事。
+
+# Building 3DLDF
+
+## Bootstrap autotools
+
+從 3DLDF source tree：
+
+``` bash
+libtoolize && \
+aclocal && \
+autoconf && \
+automake --add-missing --copy
+```
+
+## 找出 MySQL flags
+
+在 Guix shell 裡：
+
+``` bash
+pkg-config --cflags mysqlclient
+```
+
+這會產生 MySQL 與 OpenSSL headers 的 Guix store paths。
+
+目前的 manual build 在 `CPPFLAGS` 與 `LDFLAGS` 使用那些 paths。
+
+這對 investigation 可以接受，但 proper Guix package 不應該 hardcode 這些值。
+
+## Configure
+
+調查期間使用的 configure invocation 範例：
+
+``` bash
+./configure --prefix=$(pwd) \
+  CPPFLAGS="-I/gnu/store/<mysql>/include/mysql -I/gnu/store/<openssl>/include" \
+  CXXFLAGS="-std=gnu++11 -fpermissive -fdiagnostics-show-option -Wno-return-type -g -O2" \
+  LDFLAGS="-L/gnu/store/<mysql>/lib" \
+  --disable-shared \
+  LIBS="-lgsl -lgslcblas -lm -lmysqlclient"
+```
+
+把 placeholder store paths 替換成 `pkg-config` 的輸出，以及對應的 MySQL library path。
+
+這裡刻意展示 flags，因為它們是 build investigation 的一部分。真正的 Guix package 應該從 inputs 推導這些 paths，而不是從手動複製的 store paths 取得。
+
+# Pre-build patches
+
+## 使用 patched ctangle
+
+Generated `src/Makefile` 會直接呼叫 `ctangle`。
+
+在 manual build 中，每個 `ctangle` invocation 都被替換成先前 build 的 patched `ctangle` 絕對路徑。
+
+這是一個 manual workaround。
+
+Proper Guix package 應該透過 build environment 提供 patched tool。
+
+## 產生 headers
+
+從 `src/` 裡：
+
+``` bash
+./create_headers.sh
+```
+
+## Patch scanner/parser generation
+
+Generated build 預期有一個 helper program 可在 `$PATH` 中使用。
+
+GNU mailing list 有一個相關歷史參考：
+
+-   <https://lists.gnu.org/archive/html/help-3dldf/2005-11/txtW0PLXn2tsu.txt>
+
+在 generated `src/Makefile` 中，相關 rule 被手動調整，讓 build 可以正確產生 `scnmptpt.l++`。
+
+Patched rule shape 範例：
+
+``` makefile
+scnmptpt.l++: scnmptpt.web
+    /path/to/patched/ctangle scnmptpt.web
+    ./prbsnflx$(EXEEXT) scnmptpt.c scnmptpt.l++
+    rm scnmptpt.c
+    ./check_scan_parse_output.sh scnmptpt.lxx scnmptpt.l++
+```
+
+# Compile
+
+從 `src/` 裡：
+
+``` bash
+make prog
+```
+
+清理 generated tree：
+
+``` bash
+make maintainer-clean
+```
+
+注意 `maintainer-clean` 會移除 generated files，並且需要重新開始 bootstrap process。
+
+# Minimal test
+
+使用一個小型 test file 驗證 non-database output path。
+
+Test source 位於：
+
+``` text
+tests/test.ldf
+```
+
+Test input：
+
+``` ldf
+verbatim_metapost "beginfig(1);";
+verbatim_metapost "draw (0,0)--(100,100);";
+verbatim_metapost "endfig;";
+verbatim_metapost "end";
+```
+
+執行：
+
+``` bash
+./3dldf --no-database test.ldf
+```
+
+接著用以下輸入結束 interactive session：
+
+``` text
+end
+```
+
+這會產生 MetaPost file：
+
+``` text
+test.mp
+```
+
+用以下命令轉換：
+
+``` bash
+mptopdf test.mp
+```
+
+Generated files 包含在 `tests/` 下：
+
+``` text
+tests/test.mp
+tests/test-1.pdf
+```
+
+# Packaging notes
+
+Proper Guix package 應該大概處理以下事項：
+
+1.  乾淨地 package 或 patch 所需的 `ctangle` behavior。
+2.  避免 compiler 與 linker flags 中 hardcoded Guix store paths。
+3.  Patch database paths 與 MySQL assumptions。
+4.  決定一開始是否要支援 database functionality。
+5.  自動化 header generation 與 scanner/parser generation。
+6.  用 Guix build phases 或 source patches 取代 manual Makefile edits。
+
+合理的第一個 package target 會是：
+
+-   build 3DLDF
+-   run a minimal `--no-database` test
+-   generate MetaPost output
+-   初期先跳過 database integration
+
+這會在第一輪避開最困難的 legacy database problems，同時保留一些最小可用功能。
+
+# Repository status
+
+這個 repository 目前是 engineering log 與 reproducibility aid，不是 finished Guix package。
+
+這份工作是在 FSF40 hackathon 期間完成的，記錄了一條穿過 GNU 3DLDF、CWEB、autotools、Guix build environments 與 legacy MySQL assumptions 相關 build blockers 的可運作路徑。
+
+以目前形式來說，這個 repository 主要適用於：
+
+-   future Guix packaging work
+-   documenting legacy GNU build issues
+-   reproducing the minimal non-database output path
+-   preserving notes on CWEB / autotools / MySQL-related blockers
+
+---
+
+
+> 本文採用 [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/)（CC BY-SA 4.0）授權，並與 [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.html) 單向相容。

@@ -1,0 +1,45 @@
+---
+layout: hire-me
+title: "Contratame"
+date: 2026-02-27 19:02:58 -0300
+lang: es
+permalink: /hire-me.html
+---
+
+## Introduccion
+
+> Traducción de <a {% static_href %}href="/hire-me.html"{% endstatic_href %}>la publicación original en inglés</a>.
+
+Soy estudiante avanzado de Ingenieria Electrica e Ingenieria en IA, y
+consultor independiente de infraestructura. Soy bilingue en ingles y
+espanol. Me especializo en dos lineas operativas distintas: desplegar
+infraestructura de servidores robusta y lista para produccion para
+clientes B2B, y ofrecer tutorias STEM aplicadas para estudiantes
+universitarios.
+
+Ya sea que necesites un entorno backend contenerizado, asegurado y
+enrutado, o que necesites sobrevivir a Calculo y Fisica avanzados,
+ofrezco soluciones limpias, documentadas y logicas.
+
+## Infraestructura y consultoria SysAdmin
+
+Los despliegues modernos no deberian ser un dolor de cabeza. Me
+especializo en tomar servidores crudos y convertirlos en entornos
+seguros, automatizados y listos para produccion.
+
+* **Provisionamiento KVM y VPS personalizado:** configuracion integral de entornos de servidor.
+* **Orquestacion de contenedores:** arquitectura y depuracion con Docker y Docker Compose.
+* **Servidor web y ruteo:** configuracion de reverse proxy con Nginx, gestion DNS e implementacion SSL/TLS.
+* **La prueba esta en el stack:** este mismo sitio web es un caso de estudio vivo. Gestiono personalmente el DNS, lo alojo en un KVM personalizado, ruteo el trafico mediante un reverse proxy y publico el contenido usando un parser propio de Org-mode a Jekyll que construi.
+
+## Mentoria STEM y programacion
+
+Uso mis estudios activos de ingenieria y mi experiencia practica en
+infraestructura para ensenar matematica aplicada y fisica. No enseno
+solo las formulas; enseno como operan en entornos tecnologicos reales.
+
+* **Matematica universitaria:** Calculo, Algebra Lineal, Estadistica.
+* **Fisica avanzada:** Mecanica, Electromagnetismo.
+* **Ciencias de la computacion:** logica algoritmica, Python, C y programacion competitiva (ver mis soluciones de Advent of Code 2025 abajo).
+* **Instruccion bilingue:** disponible de forma nativa en espanol o fluida en ingles.
+

@@ -1,0 +1,14 @@
+---
+layout: project_AoC2025
+project: true
+title: "Advent of Code 2025"
+date: 2025-12-03 20:41:00 -0300
+categories: project aoc programming
+lang: es
+permalink: /projects/aoc2025.html
+---
+
+Soluciones a los puzzles de 2025.
+
+> Traducción de <a {% static_href %}href="/projects/aoc2025.html"{% endstatic_href %}>la publicación original en inglés</a>.
+

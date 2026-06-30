@@ -1,0 +1,44 @@
+---
+layout: post
+title: "Advent of Code 2025 - 第 3 天：D"
+date: 2025-12-30 00:11:31 -0300
+lang: zh_TW
+project-aoc2025: true
+permalink: /project/aoc2025d3.html
+---
+
+「某種電湧似乎把它們燒壞了。我會試著盡快讓它們上線。」
+
+> 本文翻譯自<a {% static_href %}href="/project/aoc2025d3.html"{% endstatic_href %}>英文原文</a>。
+
+**Github**: *[GCaggianese/AoC-2025/D3](https://github.com/GCaggianese/AoC-2025/tree/master/D3)*
+   - [D programming language](https://dlang.org/)
+
+# 題目 [第 3 天：Lobby](https://adventofcode.com/2025/day/3)
+
+## 第一部分：
+
+1.  `int jolt = 0;`
+2.  建立輸入的列表與副本：`og`、`aux1`。
+3.  `aux1` 會丟掉最後一個值。例如：`987654321111118` ->
+    `98765432111111`
+4.  在這裡取最大值 -> `jolt += aux1.max*10`
+5.  建立第二個列表 `aux2`，它是 `og` 從前一個最大值下一個位置開始的 slice。
+    例：`98765432111111`，max = 9 -> `aux2` = `87654321111118`
+6.  在這裡取最大值 -> `jolt += aux2.max`
+
+## 第二部分：
+
+1.  `long jolt = 0;`
+2.  `multiplier = 10^11`（因為要建立 12 位數）
+3.  i 從 0 到 11（選 12 個數字）：
+    -   remaining~needed~ = 12 - i
+    -   window = og\[0 .. og.length - remaining~needed~ + 1\]（保留
+        足夠元素給之後的選擇）。例：第一次從 `234234234234278`
+        選，要 12 位數，window = `[2,3,4,2]`（必須留下 11 個給後面）。
+    -   從 window 選 `maxVal` -> `jolt += maxVal * multiplier`
+    -   從 `maxIdx+1` 開始切掉 `og`（丟掉直到且包含所選項目的所有元素）。
+        例：在 idx 2 選到 4 -> `og` 變成 `[2,3,4,2,3,4,2,7,8]`
+    -   `multiplier /= 10`
+4.  摘要：選擇目前可用的最高數字，同時仍保留足夠數字完成 12 次選擇。
+

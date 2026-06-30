@@ -1,0 +1,55 @@
+---
+layout: post
+title: "Advent of Code 2025 - Dia 6 en Julia"
+date: 2026-01-07 00:52:53 -0300
+lang: es
+project-aoc2025: true
+permalink: /project/aoc2025-d6.html
+---
+
+"La matemática de cefalópodos no se ve tan distinta de la matemática normal."
+
+> Traducción de <a {% static_href %}href="/project/aoc2025-d6.html"{% endstatic_href %}>la publicación original en inglés</a>.
+
+**Github**: *[GCaggianese/AoC-2025/D6](https://github.com/GCaggianese/AoC-2025/tree/master/D6)*
+   - [The Julia Programming Language](https://julialang.org/)
+
+# Puzzle [Dia 6: Trash Compactor](https://adventofcode.com/2025/day/6)
+
+## Parte uno
+
+-   Parsear el input como una matriz usando espacios (`" "`) como separadores.
+-   Aplicar la operación del operador (última fila) a cada columna en la misma fila.
+-   Sumar los resultados.
+
+## Parte 2
+
+La parte 2 requiere leer los números del input ****verticalmente**** en
+lugar de horizontalmente. Cada posición de columna se vuelve un dígito,
+y los dígitos se apilan de arriba hacia abajo para formar nuevos
+números. Es importante notar que también hay espacios en los inputs
+numéricos (por ejemplo `" 51"`). Esto importa porque al leer
+verticalmente cambia la indentación y, por lo tanto, si un dígito forma
+parte de otro número o no.
+
+### Parsing actualizado
+
+1.  **Mantener las posiciones de los caracteres**
+    -   `readdlm` destruye la información espacial al tratar espacios
+        como delimitadores. -> usar `readlines()` y parsear caracteres uno por uno.
+2.  **Expandir el header**
+    -   La fila de operadores usa espacios para significar "repetir el
+        operador anterior". Entonces `*   +   *   +` se expande a
+        `****++++****+++` -> cada columna tiene su operador.
+3.  **Leer columnas verticalmente**
+    -   Para cada posición de columna, apilar los dígitos de todas las
+        filas (de arriba hacia abajo).
+    -   Concatenarlos en un único número.
+        -   Los espacios dentro de la grilla numérica significan "no hay dígito aquí".
+4.  **Columnas separadoras**
+    -   Una columna donde todas las celdas son `" "` significa un separador entre operaciones.
+5.  **Aplicar operadores y sumar**
+    -   Agrupar números consecutivos entre separadores.
+    -   Aplicar su operador.
+    -   Sumar todos los resultados para obtener la respuesta.
+

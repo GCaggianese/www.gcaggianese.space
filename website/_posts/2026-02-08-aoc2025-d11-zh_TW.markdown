@@ -1,0 +1,134 @@
+---
+layout: post
+title: "Advent of Code 2025 - 第 11 天：Nim"
+date: 2026-02-08 17:00:17 -0300
+lang: zh_TW
+project-aoc2025: true
+permalink: /project/aoc2025-d11.html
+---
+
+「幸好你在這裡！我們剛裝好新的伺服器機櫃，但一直無法讓反應爐和它通訊。」
+
+> 本文翻譯自<a {% static_href %}href="/project/aoc2025-d11.html"{% endstatic_href %}>英文原文</a>。
+
+**Github**: *[GCaggianese/AoC-2025/D11](https://github.com/GCaggianese/AoC-2025/tree/master/D11)*
+   - [Nim Programming Language](https://nim-lang.org/)
+
+# 題目 [第 11 天：Reactor](https://adventofcode.com/2025/day/11)
+
+## 第一部分
+
+計算從 `you` 到 `out` 的所有可能展開。
+
+### 模型
+
+輸入是重寫規則形成的**有向圖**：
+
+* 每行：`lhs: rhs1 rhs2 ...`
+* 意義：從節點 `lhs` 可以跳到任意 `rhs*`
+* `out` 是終端 sink
+
+### 演算法（圖上的 DFS）
+
+1. **解析輸入**為 adjacency list：`Graph: node -> [next_nodes]`
+2. 從起始節點 `"you"` 做 **DFS**
+3. 維護 `onStack` 以避免在 cycle 中無限遞迴（只計算**簡單路徑**）
+4. 每次 DFS 到達 `out`，增加 `count`
+
+### DFS 核心
+
+```nim
+proc dfsCountAll(g: Graph, node: string, onStack: var HashSet[string], outCount: var int64) =
+  if node == "out":
+    inc outCount
+    return
+  if node in onStack:
+    return
+
+  onStack.incl node
+  for nxt in g.getOrDefault(node, @[]):
+    dfsCountAll(g, nxt, onStack, outCount)
+  onStack.excl node
+```
+
+## 第二部分
+
+計算從 `svr` 到 `out` 且同時包含 **`fft` 和 `dac`** 的路徑。
+
+最終答案（我的輸入）：`462444153119850`
+
+### 為什麼 naive 方法會死
+
+儲存每條完整路徑（`seq[seq[string]]`）會讓記憶體爆炸，因為路徑數量巨大（通常是指數級）。
+
+### 演算法（DAG 上帶 2-bit 狀態的 DP）
+
+若圖是無環圖（DAG），就能不枚舉路徑而計算數量。
+
+狀態：
+
+* `mask` bit 0：是否看過 `fft`
+* `mask` bit 1：是否看過 `dac`
+
+DP 遞迴：
+
+* `dp(node, mask)` = 對所有 child 的 `dp(child, mask')` 求和
+* 其中 `mask' = mask OR flags(node)`
+* `out` 的 base case：若 `mask == 3` 回傳 `1`，否則 `0`
+
+Memoization key：`(node, mask)`。
+
+### DP 核心
+
+```nim
+# mask bit0 = seen fft, bit1 = seen dac
+proc countMaskDP(
+  g: Graph,
+  node: string,
+  maskIn: int,
+  memo: var Table[(string, int), int64]
+): int64 =
+  let key = (node, maskIn)
+  if memo.hasKey(key): return memo[key]
+
+  var mask = maskIn
+  if node == "fft": mask = mask or 1
+  if node == "dac": mask = mask or 2
+
+  if node == "out":
+    return (if (mask and 3) == 3: 1 else: 0)
+
+  var acc: int64 = 0
+  for nxt in g.getOrDefault(node, @[]):
+    acc += countMaskDP(g, nxt, mask, memo)
+
+  memo[key] = acc
+  acc
+```
+
+### 筆記
+
+- 如果圖有 cycles，這個 DP 對「簡單路徑」不成立；實作會 fallback 到剪枝 DFS。
+- 需要使用 `int64`：結果可能非常大（這次是 `4.6e14`）。
+
+## 複雜度
+
+令：
+
+- `V` = 節點數
+- `E` = 邊數
+
+第一部分（DFS，簡單路徑）：最壞情況在分支數上是指數級（若 reachable subgraph 小，實務上可行）。
+
+第二部分（DAG DP）：
+
+- 狀態：`4 * V`（因為 mask ∈ {0,1,2,3}）
+- 轉移：每條邊對每個 mask 處理一次 -> `O(4E)` 時間
+- 記憶體：memo table 為 `O(4V)`
+
+## Nim 實作
+
+執行：
+
+`nimble run`
+

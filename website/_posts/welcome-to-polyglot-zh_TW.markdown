@@ -9,6 +9,8 @@ permalink: /welcome-to-polyglot-zh_TW
 
 # 你找到一篇中文文章啦！
 
+> 本文翻譯自<a {% static_href %}href="/welcome-to-polyglot-en"{% endstatic_href %}>英文原文</a>。
+
 你真是太幸運了！
 
 {% highlight ruby %}

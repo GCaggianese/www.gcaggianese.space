@@ -1,0 +1,706 @@
+---
+layout: post
+title: "Advent of Code 2025 - 第 4 天：flat assembler"
+date: 2026-01-03 01:38:10 -0300
+lang: zh_TW
+project-aoc2025: true
+permalink: /project/aoc2025d4.html
+---
+
+「如果你能最佳化堆高機正在做的工作，也許它們就會有空穿過那面牆。」
+
+> 本文翻譯自<a {% static_href %}href="/project/aoc2025d4.html"{% endstatic_href %}>英文原文</a>。
+
+**Github**: *[GCaggianese/AoC-2025/D4](https://github.com/GCaggianese/AoC-2025/tree/master/D4)*
+   - [flat assembler](https://flatassembler.net/)
+
+# 謎題 [第 4 天：Printing Department](https://adventofcode.com/2025/day/4)
+
+## 第一部分：
+
+-   矩陣輸入，其中 `.` = 紙卷，`@` = 空位
+-   有效 = 周圍有 5 個以上相鄰紙卷的空位
+-   回傳有效位置的數量
+
+## 第二部分：
+
+-   傳播：有效位置會變成紙卷
+-   重複直到沒有新的有效位置出現
+-   回傳所有已啟動位置的總數
+
+![](./aoc2025-d4.jpg)
+
+我也放了一份 Python 解法實作，
+相當直接易懂。
+
+# FASM 實作
+
+## 授權
+
+``` asm
+;;; SPDX-FileCopyrightText: 2026 Germán Caggianese <german.caggianese@pm.me>
+;;;
+;;; SPDX-License-Identifier: Apache-2.0
+```
+
+## 標頭
+
+```nasm
+format ELF64 executable
+entry _start
+```
+
+## 矩陣 macro
+
+這個 macro 會在編譯時解析輸入檔，並轉換：
+
+-   `.`（紙卷）→ 1
+-   `@`（空位）→ 0
+-   換行與其他字元會被略過
+
+`virtual` 區塊會把檔案載入一個位址空間，接著我們
+逐 byte 迭代，只輸出有意義的那些值。
+
+```nasm
+macro matrix_from_file name, filename {
+    virtual at 0
+        name#.data:: file filename
+        name#.size = $
+    end virtual
+    label name byte
+    name#.len = 0
+    repeat name#.size
+        load name#.ch byte from name#.data:(%-1)
+        if name#.ch = '.'
+            db 1
+            name#.len = name#.len + 1
+        else if name#.ch = '@'
+            db 0
+            name#.len = name#.len + 1
+        end if
+    end repeat
+}
+```
+
+## 資料區段
+
+### 載入 input 並定義常數
+
+``` nasm
+segment readable writeable
+    matrix_from_file my_matrix, './input.txt'
+    MATRIX_SIZE = my_matrix.len
+    ROWS = 138
+    COLS = 138
+```
+
+### 工作 buffers
+
+-   `result`：儲存每次計算後的鄰居總和
+-   `backup`：保存原始矩陣狀態，供第二部分使用
+
+``` nasm
+result rb ROWS * COLS
+backup rb ROWS * COLS
+```
+
+### 8-connectivity 的方向 offset
+
+每一對都是 (row~offset~, col~offset~)，以 signed bytes 表示。
+
+``` nasm
+directions db -1,-1, -1,0, -1,1, 0,-1, 0,1, 1,-1, 1,0, 1,1
+NUM_DIRS = 8
+```
+
+### 計數器與輸出字串
+
+``` nasm
+    counter_p1 dq 0
+    counter_p2 dq 0
+
+    msg_p1 db 'Counter P1: '
+    msg_p1_len = $ - msg_p1
+    msg_p2 db 'Counter P2: '
+    msg_p2_len = $ - msg_p2
+    buffer rb 16
+    newline db 0x0A
+
+segment readable executable
+```
+
+## 主要邏輯
+
+``` nasm
+_start:
+```
+
+### 備份原始矩陣
+
+我們需要保留原始狀態，因為第二部分會修改它。
+
+-   複製 my~matrix~ → backup
+
+``` nasm
+    xor rcx, rcx
+.backup_loop:
+    cmp rcx, MATRIX_SIZE
+    jge .part1_start
+    mov al, [my_matrix + rcx]
+    mov [backup + rcx], al
+    inc rcx
+    jmp .backup_loop
+```
+
+## 第一部分：單次 pass 計算
+
+### 加總鄰居
+
+對每個 cell，將它自己的值與所有有效鄰居相加。注意：
+
+-   `r12` = row index
+-   `r13` = col index
+
+``` nasm
+.part1_start:
+    xor r12, r12
+
+.p1_row_loop:
+    cmp r12, ROWS
+    jge .p1_correction
+
+    xor r13, r13
+
+.p1_col_loop:
+    cmp r13, COLS
+    jge .p1_next_row
+```
+
+計算 linear index：rax = row \* COLS + col。注意：
+
+-   `r14` = sum（從 cell value 開始）
+-   `r15` = direction index
+
+``` nasm
+    mov rax, r12
+    imul rax, COLS
+    add rax, r13
+    movzx r14d, byte [my_matrix + rax]
+
+    xor r15, r15
+
+.p1_dir_loop:
+    cmp r15, NUM_DIRS
+    jge .p1_store_result
+```
+
+載入方向 offsets
+
+``` nasm
+
+movsx r8, byte [directions + r15*2]      ; r8 = di
+movsx r9, byte [directions + r15*2 + 1]  ; r9 = dj
+```
+
+計算鄰居位置。注意：
+
+-   `r10` = ni = row + di
+-   `r11` = nj = col + dj
+
+``` nasm
+
+mov r10, r12
+add r10, r8
+mov r11, r13
+add r11, r9
+```
+
+邊界檢查：0 \<= ni \< ROWS && 0 \<= nj \< COLS
+
+``` nasm
+cmp r10, 0
+jl .p1_next_dir
+cmp r10, ROWS
+jge .p1_next_dir
+cmp r11, 0
+jl .p1_next_dir
+cmp r11, COLS
+jge .p1_next_dir
+```
+
+把鄰居值加到 sum
+
+``` nasm
+    mov rax, r10
+    imul rax, COLS
+    add rax, r11
+    movzx eax, byte [my_matrix + rax]
+    add r14, rax
+
+.p1_next_dir:
+    inc r15
+    jmp .p1_dir_loop
+
+.p1_store_result:
+    mov rax, r12
+    imul rax, COLS
+    add rax, r13
+    mov byte [result + rax], r14b
+
+    inc r13
+    jmp .p1_col_loop
+
+.p1_next_row:
+    inc r12
+    jmp .p1_row_loop
+```
+
+### 修正
+
+邊緣 cells 的鄰居較少，所以我們補償：
+
+-   邊緣 cells（非角落）：+3
+-   角落 cells：+3 +2 = +5
+
+這會把所有 cells 正規化成彷彿被空位包圍。
+
+**最上列：+3**
+
+``` nasm
+.p1_correction:
+    xor rcx, rcx
+.p1_top_row:
+    cmp rcx, COLS
+    jge .p1_bottom_row
+    add byte [result + rcx], 3
+    inc rcx
+    jmp .p1_top_row
+```
+
+**最下列：+3**
+
+``` nasm
+
+.p1_bottom_row:
+    xor rcx, rcx
+.p1_bottom_loop:
+    cmp rcx, COLS
+    jge .p1_left_col
+    mov rax, (ROWS-1) * COLS
+    add rax, rcx
+    add byte [result + rax], 3
+    inc rcx
+    jmp .p1_bottom_loop
+```
+
+**左欄（排除角落）：+3**
+
+``` nasm
+.p1_left_col:
+    mov rcx, 1
+.p1_left_loop:
+    cmp rcx, ROWS-1
+    jge .p1_right_col
+    mov rax, rcx
+    imul rax, COLS
+    add byte [result + rax], 3
+    inc rcx
+    jmp .p1_left_loop
+```
+
+**右欄（排除角落）：+3**
+
+``` nasm
+.p1_right_col:
+    mov rcx, 1
+.p1_right_loop:
+    cmp rcx, ROWS-1
+    jge .p1_corners
+    mov rax, rcx
+    imul rax, COLS
+    add rax, COLS-1
+    add byte [result + rax], 3
+    inc rcx
+    jmp .p1_right_loop
+```
+
+**角落：額外 +2**
+
+``` nasm
+.p1_corners:
+    add byte [result], 2                              ; [0][0]
+    add byte [result + COLS - 1], 2                   ; [0][COLS-1]
+    add byte [result + (ROWS-1) * COLS], 2            ; [ROWS-1][0]
+    add byte [result + (ROWS-1) * COLS + COLS - 1], 2 ; [ROWS-1][COLS-1]
+```
+
+### 過濾（與反轉後的原始資料做 elementwise multiply）
+
+把原本是 1（紙卷）的位置歸零。我們只關心
+有很多鄰居的空位（`@`）。
+
+``` nasm
+    xor rcx, rcx
+.p1_filter_loop:
+    cmp rcx, MATRIX_SIZE
+    jge .p1_count
+
+    cmp byte [my_matrix + rcx], 1
+    jne .p1_filter_next
+    mov byte [result + rcx], 0
+
+.p1_filter_next:
+    inc rcx
+    jmp .p1_filter_loop
+```
+
+### 計算值 ≥ 5 的 cells
+
+Note:
+
+-   `r12` = counter
+
+``` nasm
+.p1_count:
+    xor r12, r12
+    xor rcx, rcx
+
+.p1_count_loop:
+    cmp rcx, MATRIX_SIZE
+    jge .p1_done
+
+    cmp byte [result + rcx], 5
+    jl .p1_count_next
+    inc r12
+
+.p1_count_next:
+    inc rcx
+    jmp .p1_count_loop
+
+.p1_done:
+    mov [counter_p1], r12
+```
+
+## 第二部分：傳播 loop
+
+還原原始矩陣並迭代直到飽和。每次 iteration，
+有 ≥5 個鄰居的 cells 會變成紙卷。
+
+**從 backup 還原 my~matrix~**
+
+``` nasm
+    xor rcx, rcx
+.restore_loop:
+    cmp rcx, MATRIX_SIZE
+    jge .p2_main_loop
+    mov al, [backup + rcx]
+    mov [my_matrix + rcx], al
+    inc rcx
+    jmp .restore_loop
+
+    mov qword [counter_p2], 0
+
+.p2_main_loop:
+```
+
+### 加總鄰居（與第一部分相同的演算法）
+
+``` nasm
+    xor r12, r12
+
+.p2_row_loop:
+    cmp r12, ROWS
+    jge .p2_correction
+
+    xor r13, r13
+
+.p2_col_loop:
+    cmp r13, COLS
+    jge .p2_next_row
+
+    mov rax, r12
+    imul rax, COLS
+    add rax, r13
+    movzx r14d, byte [my_matrix + rax]
+
+    xor r15, r15
+
+.p2_dir_loop:
+    cmp r15, NUM_DIRS
+    jge .p2_store_result
+
+    movsx r8, byte [directions + r15*2]
+    movsx r9, byte [directions + r15*2 + 1]
+
+    mov r10, r12
+    add r10, r8
+    mov r11, r13
+    add r11, r9
+
+    cmp r10, 0
+    jl .p2_next_dir
+    cmp r10, ROWS
+    jge .p2_next_dir
+    cmp r11, 0
+    jl .p2_next_dir
+    cmp r11, COLS
+    jge .p2_next_dir
+
+    mov rax, r10
+    imul rax, COLS
+    add rax, r11
+    movzx eax, byte [my_matrix + rax]
+    add r14, rax
+
+.p2_next_dir:
+    inc r15
+    jmp .p2_dir_loop
+
+.p2_store_result:
+    mov rax, r12
+    imul rax, COLS
+    add rax, r13
+    mov byte [result + rax], r14b
+
+    inc r13
+    jmp .p2_col_loop
+
+.p2_next_row:
+    inc r12
+    jmp .p2_row_loop
+```
+
+### 修正（與第一部分相同）
+
+``` nasm
+.p2_correction:
+    xor rcx, rcx
+.p2_top_row:
+    cmp rcx, COLS
+    jge .p2_bottom_row
+    add byte [result + rcx], 3
+    inc rcx
+    jmp .p2_top_row
+
+.p2_bottom_row:
+    xor rcx, rcx
+.p2_bottom_loop:
+    cmp rcx, COLS
+    jge .p2_left_col
+    mov rax, (ROWS-1) * COLS
+    add rax, rcx
+    add byte [result + rax], 3
+    inc rcx
+    jmp .p2_bottom_loop
+
+.p2_left_col:
+    mov rcx, 1
+.p2_left_loop:
+    cmp rcx, ROWS-1
+    jge .p2_right_col
+    mov rax, rcx
+    imul rax, COLS
+    add byte [result + rax], 3
+    inc rcx
+    jmp .p2_left_loop
+
+.p2_right_col:
+    mov rcx, 1
+.p2_right_loop:
+    cmp rcx, ROWS-1
+    jge .p2_corners
+    mov rax, rcx
+    imul rax, COLS
+    add rax, COLS-1
+    add byte [result + rax], 3
+    inc rcx
+    jmp .p2_right_loop
+
+.p2_corners:
+    add byte [result], 2
+    add byte [result + COLS - 1], 2
+    add byte [result + (ROWS-1) * COLS], 2
+    add byte [result + (ROWS-1) * COLS + COLS - 1], 2
+```
+
+### 過濾
+
+``` nasm
+    xor rcx, rcx
+.p2_filter_loop:
+    cmp rcx, MATRIX_SIZE
+    jge .p2_count_and_activate
+
+    cmp byte [my_matrix + rcx], 1
+    jne .p2_filter_next
+    mov byte [result + rcx], 0
+
+.p2_filter_next:
+    inc rcx
+    jmp .p2_filter_loop
+```
+
+### 計數並啟動
+
+計算 cells ≥5 的數量，並在 `my_matrix` 中啟動它們，供下一次 iteration 使用。
+
+``` nasm
+.p2_count_and_activate:
+    xor rbx, rbx            ; rbx = new_activations this iteration
+    xor rcx, rcx
+
+.p2_count_loop:
+    cmp rcx, MATRIX_SIZE
+    jge .p2_check_continue
+
+    cmp byte [result + rcx], 5
+    jl .p2_count_next
+
+    inc rbx                         ; new_activations++
+    mov byte [my_matrix + rcx], 1   ; activate: becomes paper roll
+
+.p2_count_next:
+    inc rcx
+    jmp .p2_count_loop
+
+.p2_check_continue:
+    ; counter_p2 += new_activations
+    add [counter_p2], rbx
+
+    ; if new_activations > 0, continue propagating
+    test rbx, rbx
+    jnz .p2_main_loop
+```
+
+## 輸出
+
+### 印出第一部分結果
+
+``` nasm
+.print_results:
+    ; Print "Counter P1: "
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, msg_p1
+    mov rdx, msg_p1_len
+    syscall
+
+    ; Convert counter_p1 to string
+    mov rax, [counter_p1]
+    call .print_number_in_rax
+```
+
+### 印出第二部分結果
+
+``` nasm
+; Print "Counter P2: "
+mov rax, 1
+mov rdi, 1
+mov rsi, msg_p2
+mov rdx, msg_p2_len
+syscall
+
+; Convert counter_p2 to string
+mov rax, [counter_p2]
+call .print_number_in_rax
+
+jmp .exit
+```
+
+### 數字列印 subroutine
+
+把 `rax` 中的值轉成 decimal string，並連同 newline 印出。
+
+``` nasm
+.print_number_in_rax:
+    lea rdi, [buffer + 15]
+    mov rcx, 10
+
+    test rax, rax
+    jnz .convert_loop
+    ; Handle zero case
+    dec rdi
+    mov byte [rdi], '0'
+    jmp .do_print
+
+.convert_loop:
+    test rax, rax
+    jz .do_print
+    xor rdx, rdx
+    div rcx                 ; rax = quotient, rdx = remainder
+    add dl, '0'
+    dec rdi
+    mov [rdi], dl
+    jmp .convert_loop
+
+.do_print:
+    ; Calculate length and print
+    lea rdx, [buffer + 15]
+    sub rdx, rdi            ; rdx = length
+    mov rsi, rdi
+    mov rax, 1
+    mov rdi, 1
+    syscall
+
+    ; Print newline
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, newline
+    mov rdx, 1
+    syscall
+    ret
+```
+
+### 離開
+
+``` nasm
+.exit:
+    ;; 下次見～
+    mov rax, 60
+    xor rdi, rdi
+    syscall
+```
+
+# 編譯與執行
+
+用 `fasm main.asm` 編譯 `main.asm`，再用 `./main` 執行。它
+應該可在每個 x86 與 x86-64 系統上運作。input hardcoded 為
+`./input.txt`
+
+預期輸出：
+
+``` example
+Counter P1: <number>
+Counter P2: <number>
+```
+
+## 一些 benchmarks
+
+### Python3
+
+❯ time python3 draft.py Counter P1: 1549 Counter P2: 8887
+
+<u>\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_</u>
+Executed in 1.16 secs fish external usr time 1.15 secs 0.00 micros 1.15
+secs sys time 0.01 secs 871.00 micros 0.00 secs
+
+### PyPy3
+
+❯ time pypy3 draft.py Counter P1: 1549 Counter P2: 8887
+
+<u>\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_</u>
+Executed in 215.26 millis fish external usr time 193.14 millis 0.00
+millis 193.14 millis sys time 21.98 millis 1.14 millis 20.84 millis
+
+### FASM
+
+❯ time ./main \#FASM Counter P1: 1549 Counter P2: 8887
+
+<u>\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_</u>
+Executed in 29.71 millis fish external usr time 28.89 millis 0.00 micros
+28.89 millis sys time 0.77 millis 773.00 micros 0.00 millis
+
+如預期，FASM 大約比 PyPy 的 JIT 快 10.7x，並且
+比 Python 快 58x。我知道我的 FASM 程式碼不是最
+有效率、也沒有最佳化，Python 版本也一樣；這個 benchmark
+只是個有趣的事實。

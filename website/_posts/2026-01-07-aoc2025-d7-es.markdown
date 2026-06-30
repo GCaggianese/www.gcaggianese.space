@@ -1,0 +1,60 @@
+---
+layout: post
+title: "Advent of Code 2025 - Dia 7 en Zig"
+date: 2026-01-07 14:14:07 -0300
+lang: es
+project-aoc2025: true
+permalink: /project/aoc2025-d7.html
+---
+
+"De repente, te encontrás en una habitación desconocida. La habitación no tiene puertas."
+
+> Traducción de <a {% static_href %}href="/project/aoc2025-d7.html"{% endstatic_href %}>la publicación original en inglés</a>.
+
+**Github**: *[GCaggianese/AoC-2025/D7](https://github.com/GCaggianese/AoC-2025/tree/master/D7)*
+   - [Zig Programming language](https://ziglang.org/)
+
+# Puzzle [Dia 7: Laboratories](https://adventofcode.com/2025/day/7)
+
+## Parte uno
+
+Procesar de arriba hacia abajo. Para cada celda `a_{i,j}`:
+- `.` -> no hacer nada
+- `S` o `|` -> mirar $a_{i+1,j}$ (celda inferior):
+  - si es `.` -> cambiarla a `|`
+  - si es `^` -> $a_{i+1,j-1}$ y $a_{i+1,j+1}$ pasan a ser `|`
+    - **Importante**: marcar `^` como usado
+
+Contar cuántos splitters `^` fueron marcados como usados.
+
+## Parte dos
+
+Contar todas las líneas temporales posibles cuando los splits `^` van
+en **una dirección por vez**.
+
+Para cada celda `a_{i,j}`:
+- `col >= cols` -> devolver 1 (camino completado)
+- `row >= rows` -> devolver 1 (llegó al fondo)
+- `^` en $a_{r,col}$ -> recursión:
+  - `countPaths(r+1, col-1)` + `countPaths(r+1, col+1)`
+  - si `col == 0` -> la rama izquierda devuelve 1 (fuera de grilla = completado)
+
+### Ejemplo
+
+```
+.S.        .S.   .S.
+...   →    .|.   .|.
+.^.        |^.   .^|
+...        |..   ..|
+..^        |.^   .|^
+```
+
+Camino izquierdo: 1 (llega al fondo)
+Camino derecho: toca `^` en (4,2) -> se divide de nuevo -> 2
+**Total: 3 líneas temporales**
+
+### Optimización
+
+Memoización con `HashMap(State, usize)` donde `State = {row, col}`.
+Evita recalcular caminos desde la misma posición.
+

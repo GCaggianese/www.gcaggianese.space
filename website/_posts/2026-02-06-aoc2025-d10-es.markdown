@@ -1,0 +1,182 @@
+---
+layout: post
+title: "Advent of Code 2025 - Dia 10 en Typescript y Rust"
+date: 2026-02-06 23:14:19 -0300
+lang: es
+project-aoc2025: true
+permalink: /project/aoc2025-d10.html
+---
+
+"Los Elfos sí tienen el manual de las máquinas, pero la sección que detalla el procedimiento de inicialización fue comida por un Shiba Inu."
+
+> Traducción de <a {% static_href %}href="/project/aoc2025-d10.html"{% endstatic_href %}>la publicación original en inglés</a>.
+
+**Github**: *[GCaggianese/AoC-2025/D10](https://github.com/GCaggianese/AoC-2025/tree/master/D10)*
+   - [Javascript with syntax for types](https://www.typescriptlang.org/)
+   - [Rust Programming Language](https://rust-lang.org/)
+
+# Puzzle [Dia 10: Factory](https://adventofcode.com/2025/day/10)
+
+## Parte uno
+
+Encontrar la cantidad mínima de presiones de botones necesarias para configurar las luces indicadoras de cada máquina de modo que coincidan con el estado objetivo.
+
+* **Input**: lista de máquinas; cada una contiene:
+  * Diagrama de luces indicadoras en `[corchetes]`
+  * Esquemas de cableado de botones en `(paréntesis)`
+  * Requisitos de joltage en `{llaves}` (ignorados en la parte uno)
+
+### Reglas de parsing
+
+#### Estado objetivo (luces indicadoras)
+
+El diagrama de luces representa el estado binario deseado:
+* `.` -> bit `0` (apagado)
+* `#` -> bit `1` (encendido)
+
+**Ejemplo**: `[.##.]` -> `0110`
+
+#### Mapeo de botones
+
+Cada esquema de botón lista qué luces indicadoras alterna (operación XOR). Las posiciones tienen índice cero:
+* `(3)` -> alterna la posición 3 -> máscara binaria donde sólo el bit 3 está encendido
+* `(0,2)` -> alterna posiciones 0 y 2 -> máscara binaria con bits 0 y 2 encendidos
+
+La longitud binaria se determina por la cantidad de luces indicadoras.
+
+**Ejemplo para objetivo de 4 bits** `[.##.]`:
+
+```
+(3)     -> 0001  (position 3 set)
+(1,3)   -> 0101  (positions 1, 3 set)
+(2)     -> 0010  (position 2 set)
+(2,3)   -> 0011  (positions 2, 3 set)
+(0,2)   -> 1010  (positions 0, 2 set)
+(0,1)   -> 1100  (positions 0, 1 set)
+```
+
+**Ejemplo para objetivo de 6 bits** `[.###.#]`:
+
+```
+(0,1)   -> 110000  (positions 0, 1 set)
+```
+
+### Formulación del problema
+
+Dado:
+* Estado inicial: todas las luces apagadas -> `0000...0`
+* Estado objetivo: parseado desde el diagrama de indicadores
+* Operaciones disponibles: XOR con cualquier máscara de botón
+
+Encontrar la cantidad mínima de presiones de botones (subconjunto de botones) tal que:
+
+$$\bigoplus_{b \in S} b = \text{target}$$
+
+donde $S$ es el subconjunto de botones usados, y cada botón se puede presionar 0 o 1 vez (presionarlo dos veces cancela el efecto).
+
+### Algoritmo
+
+Usar programación dinámica para explorar todos los estados XOR alcanzables:
+
+1. Inicializar `reachable[0] = 0` (cero presiones para llegar al estado 0)
+2. Para cada máscara de botón $b$:
+   * Para cada estado $s$ en `reachable`:
+     * Calcular nuevo estado: $s' = s \oplus b$
+     * Actualizar: `reachable[s'] = min(reachable[s'] , reachable[s] + 1)`
+3. Devolver `reachable[target]`
+
+**Complejidad**: $O(n \times 2^k)$ donde $n$ es la cantidad de botones y $k$ es la longitud en bits.
+
+### Ejemplos de solución
+
+**Máquina 1**: `[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1)`
+* Objetivo: `0110`
+* Botones: `{0001, 0101, 0010, 0011, 1010, 1100}`
+* Solución: `(0,2) ⊕ (0,1) = 1010 ⊕ 1100 = 0110`
+* **Mínimo de presiones**: `2`
+
+**Máquina 2**: `[...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4)`
+* Objetivo: `00010`
+* **Mínimo de presiones**: `3`
+
+**Máquina 3**: `[.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2)`
+* Objetivo: `011101`
+* **Mínimo de presiones**: `2`
+
+## Parte dos
+
+Calcular la cantidad mínima de presiones de botones necesarias para satisfacer los requisitos de joltage de cada máquina.
+
+### Concepto
+
+El modo de operación de las máquinas cambia: pasa de manipular bits (luces indicadoras) a manipular contadores enteros (niveles de joltage).
+
+* **Objetivo:** igualar los valores enteros objetivo especificados en `{llaves}`.
+* **Mecanismo:**
+* Todos los contadores empiezan en 0.
+* Presionar un botón **incrementa** en `1` los contadores específicos a los que está cableado.
+* Esta es una operación **aditiva** (álgebra lineal), distinta de la operación XOR de la parte uno.
+
+### Formulación del problema
+
+Estamos resolviendo un sistema de ecuaciones lineales donde los vectores de botones deben sumar el vector objetivo.
+
+Dado:
+
+* Vector objetivo tomado de `{...}`.
+* Botones, donde cada botón se representa como un vector.
+* Si un botón afecta a un contador, esa posición vale 1; si no, 0.
+
+Encontrar enteros no negativos que representen cantidades de presiones y satisfagan el sistema.
+
+**Objetivo:** minimizar la cantidad total de presiones.
+
+### Algoritmo
+
+Como las operaciones son lineales, se puede usar **eliminación gaussiana**.
+
+1. **Construcción de matriz**: crear una matriz aumentada donde las columnas son los vectores de botones.
+2. **Reducción por filas**: aplicar eliminación gaussiana para llevar la matriz a forma escalonada.
+3. **Sustitución hacia atrás**: resolver las variables.
+* **Sistema determinado**: si hay solución única, verificar que todos los valores sean enteros no negativos.
+* **Sistema subdeterminado**: si hay variables libres, hacer una búsqueda acotada sobre ellas para encontrar la combinación mínima.
+4. **Verificación**: asegurar que las presiones calculadas sean enteras (dentro de epsilon de punto flotante) y no negativas.
+
+### Ejemplos de solución
+
+**Máquina 1**: `[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}`
+
+* **Objetivo**: `[3, 5, 4, 7]`
+* **Optimización**:
+* Botón `(3)` afecta índice 0 (si los índices están invertidos) o índice 3, según el mapeo.
+* El manual anota una solución: presionar `(3)` 1 vez, `(1,3)` 3 veces, `(2,3)` 3 veces, `(0,2)` 1 vez, `(0,1)` 2 veces.
+* **Mínimo de presiones**: `10`
+
+**Máquina 2**: `[...#.] ... {7,5,12,7,2}`
+
+* **Objetivo**: `[7, 5, 12, 7, 2]`
+* **Solución**: presionar `(0,2,3,4)` 2 veces, `(2,3)` 5 veces, `(0,1,2)` 5 veces.
+* **Mínimo de presiones**: `12`
+
+**Máquina 3**: `[.###.#] ... {10,11,11,5,10,5}`
+
+* **Objetivo**: `[10, 11, 11, 5, 10, 5]`
+* **Solución**: presionar `(0,1,2,3,4)` 5 veces, `(0,1,2,4,5)` 5 veces, `(1,2)` 1 vez.
+* **Mínimo de presiones**: `11`
+
+# Implementación
+
+## Parte uno: Typescript
+
+``` sh
+cd Part_One-Typescript/;
+yarn build && yarn start
+```
+
+## Parte dos: Rust
+
+``` sh
+cd Part_Two-Rust/;
+RUSTFLAGS="-C target-cpu=native" cargo run --release
+```
+

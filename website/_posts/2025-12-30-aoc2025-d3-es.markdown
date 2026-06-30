@@ -1,0 +1,48 @@
+---
+layout: post
+title: "Advent of Code 2025 - Dia 3 en D"
+date: 2025-12-30 00:11:31 -0300
+lang: es
+project-aoc2025: true
+permalink: /project/aoc2025d3.html
+---
+
+"Algún tipo de sobrecarga eléctrica parece haberlos quemado. Voy a intentar ponerlos en línea pronto."
+
+> Traducción de <a {% static_href %}href="/project/aoc2025d3.html"{% endstatic_href %}>la publicación original en inglés</a>.
+
+**Github**: *[GCaggianese/AoC-2025/D3](https://github.com/GCaggianese/AoC-2025/tree/master/D3)*
+   - [D programming language](https://dlang.org/)
+
+# Puzzle [Dia 3: Lobby](https://adventofcode.com/2025/day/3)
+
+## Parte uno:
+
+1.  `int jolt = 0;`
+2.  Hacer una lista y una copia del input: `og`, `aux1`.
+3.  `aux1` descarta el último valor. Ej.: `987654321111118` ->
+    `98765432111111`
+4.  Tomar el máximo acá -> `jolt += aux1.max*10`
+5.  Crear una segunda lista `aux2`, slice de `og` desde la posición
+    siguiente al máximo anterior. Ej.: `98765432111111`, max = 9 ->
+    `aux2` = `87654321111118`
+6.  Tomar el máximo acá -> `jolt += aux2.max`
+
+## Parte dos:
+
+1.  `long jolt = 0;`
+2.  `multiplier = 10^11` (porque estamos construyendo un número de 12 dígitos)
+3.  Para i = 0 a 11 (eligiendo 12 dígitos):
+    -   remaining~needed~ = 12 - i
+    -   window = og\[0 .. og.length - remaining~needed~ + 1\] (deja
+        suficientes elementos para futuras elecciones). Ej.: primera
+        elección desde `234234234234278`, se necesitan 12 dígitos,
+        window = `[2,3,4,2]` (debe dejar 11 para después).
+    -   Elegir `maxVal` desde window -> `jolt += maxVal * multiplier`
+    -   Cortar `og` desde `maxIdx+1` en adelante (descartar todo hasta
+        la elección inclusive). Ej.: si se eligió 4 en idx 2 -> `og`
+        pasa a ser `[2,3,4,2,3,4,2,7,8]`
+    -   `multiplier /= 10`
+4.  Resumen: elegir el dígito más alto disponible que todavía deje
+    suficientes dígitos para completar las 12 elecciones.
+
