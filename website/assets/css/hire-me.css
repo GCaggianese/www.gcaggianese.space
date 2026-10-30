@@ -1,0 +1,99 @@
+.hire-me-page {
+  background-color: #0c1218;
+}
+
+.hire-me-page .container {
+  width: 100%;
+  max-width: 760px;
+  padding: 28px 36px;
+  border: 1px solid rgba(124, 229, 179, 0.22);
+  border-radius: 18px;
+  background: rgba(13, 23, 32, 0.96);
+  color: #eef4f0;
+}
+
+.hire-me-page .row {
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
+  text-align: left;
+}
+
+.hire-me-page .row > .title {
+  text-align: center;
+}
+
+.hire-me-page .title p {
+  margin: 0.35rem 0;
+}
+
+.hire-me-page .img-circle {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+}
+
+.hire-me-page .hire-me-content {
+  color: #e6eee9;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.hire-me-page .hire-me-content p,
+.hire-me-page .hire-me-content li {
+  text-align: left;
+}
+
+.hire-me-page .hire-me-content h2 {
+  margin: 1.6em 0 0.55em;
+  color: #ffffff;
+  font-size: 1.3rem;
+  text-align: left;
+}
+
+.hire-me-page .hire-me-content a {
+  color: #7ce5b3;
+}
+
+.hire-me-page .btn.hire-me-primary,
+.hire-me-page .btn.hire-me-primary:visited {
+  padding: 12px 20px;
+  border-color: #14a800;
+  background: #14a800;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.hire-me-page .btn.hire-me-primary:hover {
+  border-color: #108900;
+  background: #108900;
+  color: #ffffff;
+}
+
+.hire-me-page .btn.hire-me-secondary,
+.hire-me-page .btn.hire-me-secondary:visited {
+  border-color: #7ce5b3;
+  background: transparent;
+  color: #7ce5b3;
+}
+
+.hire-me-page .hr-line {
+  opacity: 0.3;
+}
+
+@media (max-width: 600px) {
+  .hire-me-page .container {
+    width: 92%;
+    padding: 22px 20px;
+    border-radius: 14px;
+  }
+
+  .hire-me-page .hire-me-content {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .hire-me-page .title .btn {
+    margin: 8px 4px;
+  }
+}

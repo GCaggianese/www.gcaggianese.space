@@ -1,28 +1,43 @@
 ---
 layout: hire-me
-title: "Hire me"
+title: "Linux, VPS & Docker Support"
 date: 2026-02-27 19:02:58 -0300
 lang: en
 permalink: /hire-me.html
+description: "Linux, VPS and Docker troubleshooting and deployment, with Nginx, DNS and SSL/TLS diagnostics, clear findings and a practical handover."
+role: "Linux VPS & Docker Deployment | Nginx, DNS & SSL/TLS"
+subtitle: "Montevideo, Uruguay (UTC−3) · English & Spanish"
+upwork_cta: "Start on Upwork"
+case_cta: "View the public infrastructure case study"
 ---
 
-## Introduction
-I am an advanced Electrical and AI Engineering student and independent infrastructure consultant, bilingual in English and Spanish. I specialize in two distinct operational lanes: deploying robust, production-ready server infrastructure for B2B clients, and providing applied STEM tutoring for university students.
+## A clear result, not a configuration maze
 
-Whether you need a containerized backend environment secured and routed, or you need to survive advanced Calculus and Physics, I provide clean, documented, and logical solutions.
+I troubleshoot Linux servers and Docker deployments, then leave you a verified result, clear findings and practical handover notes. We agree on one outcome and how we will know it worked before I start changing the system.
 
-## 🛠️ Infrastructure & SysAdmin Consulting
-Modern deployments shouldn't be a headache. I specialize in taking raw servers and turning them into secure, automated, and production-ready environments.
+## What I can help with
 
-* **Custom KVM & VPS Provisioning:** End-to-end setup of server environments.
-* **Container Orchestration:** Docker and Docker-Compose architecture and debugging.
-* **Web Server & Routing:** Nginx reverse proxy configuration, DNS management, and SSL/TLS implementation.
-* **The Proof is in the Stack:** This very website is a live case study. I personally manage the DNS, host it on a custom KVM, route the traffic through a reverse proxy, and publish the content utilizing a custom Org-mode to Jekyll parser I built.
+- **Linux and VPS troubleshooting:** investigate service failures, networking problems and deployment issues.
+- **Docker and Docker Compose:** diagnose containers, internal networking, persistence and application startup.
+- **Nginx, DNS and HTTPS:** trace reverse-proxy routing, hostname configuration and SSL/TLS failures.
+- **Server migration and recovery:** plan or execute a bounded move, backup or restore task with explicit verification.
 
-## 📐 STEM & Programming Mentorship
-I leverage my active engineering studies and hands-on infrastructure experience to teach applied mathematics and physics. I don't just teach the formulas; I teach how they operate in real-world technological environments.
+## Start with a bounded diagnostic
 
-* **University Mathematics:** Calculus, Linear Algebra, Statistics.
-* **Advanced Physics:** Mechanics, Electromagnetism.
-* **Computer Science:** Algorithmic logic, Python, C, and competitive programming (See my Advent of Code 2025 solutions below).
-* **Bilingual Instruction:** Available natively in Spanish or fluently in English.
+For an unclear failure, we can start with a **30-minute paid diagnostic through Upwork**. We review the stack, symptoms, recent changes and sanitized logs or configuration. You receive a concise written summary within one day, including findings, recommendations and anything that still requires verification.
+
+The consultation is for diagnosis and next steps, not a guaranteed repair. If implementation makes sense, we agree on a separate scope.
+
+## Evidence you can inspect
+
+I designed and operate a personal self-hosting platform using Alpine Linux, KVM, Docker Compose, Nginx Proxy Manager, Caddy and Jekyll. The [public case study](https://github.com/GCaggianese/self-hosting-platform) documents the architecture, engineering decisions, troubleshooting and operational work still pending.
+
+Selected infrastructure work was completed for clients introduced by Infratech and DAR Soluciones. I worked directly with client stakeholders under the team's engagement. That work includes a constrained CentOS server migration, Debian and Windows recovery, mail migration and firewall recovery, and my assigned share of a larger team migration.
+
+## How we work
+
+1. You send the stack, the symptom or deployment goal, and the result you need.
+2. I identify the smallest useful scope and the checks that will verify it.
+3. I complete the agreed work and leave clear findings, verification and handover notes.
+
+**Ready to scope the problem?** [Tell me what is failing or what you need to deploy through my Upwork profile](https://www.upwork.com/freelancers/~016bb2fdeef1cb2886). Do not send passwords, private keys or secrets.

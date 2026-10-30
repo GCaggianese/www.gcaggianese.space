@@ -1,0 +1,52 @@
+[
+  {
+    "file": "bike_2.jpeg",
+    "source": "User-supplied attachment",
+    "sha256": "6a310a25f6605dba00df5dc416793da86737f89928cd9d853afb4f12507a7da1",
+    "modification": "Copied unchanged"
+  },
+  {
+    "file": "bike_1-fast.jpeg",
+    "source": "User-supplied attachment",
+    "sha256": "dd51b22872f6b98400077585f0c31d2e61fd724a116c474b1b2a1772015136ef",
+    "modification": "Copied unchanged"
+  },
+  {
+    "file": "bike_original.jpeg",
+    "source": "User-supplied attachment",
+    "sha256": "e9c9382a21da2bd84c5ec65317e9e562913acecf42b1ad4a10b49a1f961616f2",
+    "modification": "Copied unchanged"
+  },
+  {
+    "file": "cat_1.jpeg",
+    "source": "User-supplied attachment",
+    "sha256": "4591f5bbb3d4ad592347b9c64b40461b5a2755003c39544a5688eabb0f785e97",
+    "modification": "Copied unchanged"
+  },
+  {
+    "file": "cat_original.jpeg",
+    "source": "User-supplied attachment",
+    "sha256": "1b997495181f272dd6a78e4a26be855771f47536d81b361c182cdcc3cb72eb10",
+    "modification": "Copied unchanged"
+  },
+  {
+    "file": "Informe_cierre_multiview3d_ES.pdf",
+    "source": "User-supplied attachment",
+    "sha256": "15e86d233b8c47f047fa01572dc020f7ad24eb1b87290b27b7ef229787e5e398",
+    "modification": "Copied unchanged"
+  },
+  {
+    "file": "reporte-modelado-3d-es.pdf",
+    "source": "User-supplied attachment",
+    "sha256": "70a8fdb87056b66eeccc3db24b8354bfbcf0a75e660f3238b90aa4c6c3f72b0c",
+    "modification": "Copied unchanged"
+  },
+  {
+    "file": "pen-comparison.png",
+    "source": "GCaggianese/local-multipart-3d/docs/assets/pen-comparison.png",
+    "commit": "cb931c44002bcb898a57449b8ba800876ab6b1c0",
+    "source_job": "pen-local-trials/013f6974099942ccaf672854113104bd",
+    "sha256": "68339361bb3b25c0f03a772387c56e344efe00f29fab0a36fdddc72a26341615",
+    "modification": "Copied unchanged"
+  }
+]

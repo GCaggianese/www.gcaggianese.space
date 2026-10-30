@@ -1,45 +1,43 @@
 ---
 layout: hire-me
-title: "Contratame"
+title: "Soporte Linux, VPS y Docker"
 date: 2026-02-27 19:02:58 -0300
 lang: es
 permalink: /hire-me.html
+description: "Diagnóstico y despliegue Linux, VPS y Docker con Nginx, DNS y SSL/TLS, hallazgos claros y una entrega práctica."
+role: "Despliegue Linux, VPS y Docker | Nginx, DNS y SSL/TLS"
+subtitle: "Montevideo, Uruguay (UTC−3) · Español e inglés"
+upwork_cta: "Empezar por Upwork"
+case_cta: "Ver el caso público de infraestructura"
 ---
 
-## Introduccion
+## Un resultado claro, no un laberinto de configuración
 
-> Traducción de <a {% static_href %}href="/hire-me.html"{% endstatic_href %}>la publicación original en inglés</a>.
+Diagnostico servidores Linux y despliegues Docker, y dejo un resultado verificado, hallazgos claros y notas prácticas de entrega. Antes de modificar el sistema, acordamos un objetivo y cómo vamos a comprobar que funcionó.
 
-Soy estudiante avanzado de Ingenieria Electrica e Ingenieria en IA, y
-consultor independiente de infraestructura. Soy bilingue en ingles y
-espanol. Me especializo en dos lineas operativas distintas: desplegar
-infraestructura de servidores robusta y lista para produccion para
-clientes B2B, y ofrecer tutorias STEM aplicadas para estudiantes
-universitarios.
+## En qué puedo ayudarte
 
-Ya sea que necesites un entorno backend contenerizado, asegurado y
-enrutado, o que necesites sobrevivir a Calculo y Fisica avanzados,
-ofrezco soluciones limpias, documentadas y logicas.
+- **Diagnóstico Linux y VPS:** investigar fallas de servicios, problemas de red y errores de despliegue.
+- **Docker y Docker Compose:** diagnosticar contenedores, redes internas, persistencia e inicio de aplicaciones.
+- **Nginx, DNS y HTTPS:** revisar reverse proxy, nombres de host y fallas de SSL/TLS.
+- **Migración y recuperación:** planificar o ejecutar una migración, copia de seguridad o restauración acotada, con verificación explícita.
 
-## Infraestructura y consultoria SysAdmin
+## Empecemos por un diagnóstico acotado
 
-Los despliegues modernos no deberian ser un dolor de cabeza. Me
-especializo en tomar servidores crudos y convertirlos en entornos
-seguros, automatizados y listos para produccion.
+Si la falla todavía no está clara, podemos empezar con un **diagnóstico pago de 30 minutos mediante Upwork**. Revisamos el stack, los síntomas, los cambios recientes y logs o configuración sin secretos. Dentro de un día recibís un resumen escrito y conciso con hallazgos, recomendaciones y cualquier punto que todavía requiera verificación.
 
-* **Provisionamiento KVM y VPS personalizado:** configuracion integral de entornos de servidor.
-* **Orquestacion de contenedores:** arquitectura y depuracion con Docker y Docker Compose.
-* **Servidor web y ruteo:** configuracion de reverse proxy con Nginx, gestion DNS e implementacion SSL/TLS.
-* **La prueba esta en el stack:** este mismo sitio web es un caso de estudio vivo. Gestiono personalmente el DNS, lo alojo en un KVM personalizado, ruteo el trafico mediante un reverse proxy y publico el contenido usando un parser propio de Org-mode a Jekyll que construi.
+La consulta es para diagnosticar y definir próximos pasos, no una reparación garantizada. Si tiene sentido implementar, acordamos un alcance separado.
 
-## Mentoria STEM y programacion
+## Evidencia que podés inspeccionar
 
-Uso mis estudios activos de ingenieria y mi experiencia practica en
-infraestructura para ensenar matematica aplicada y fisica. No enseno
-solo las formulas; enseno como operan en entornos tecnologicos reales.
+Diseñé y opero una plataforma personal de self-hosting con Alpine Linux, KVM, Docker Compose, Nginx Proxy Manager, Caddy y Jekyll. El [caso de estudio público](https://github.com/GCaggianese/self-hosting-platform) documenta la arquitectura, las decisiones de ingeniería, el diagnóstico y las mejoras operativas todavía pendientes.
 
-* **Matematica universitaria:** Calculo, Algebra Lineal, Estadistica.
-* **Fisica avanzada:** Mecanica, Electromagnetismo.
-* **Ciencias de la computacion:** logica algoritmica, Python, C y programacion competitiva (ver mis soluciones de Advent of Code 2025 abajo).
-* **Instruccion bilingue:** disponible de forma nativa en espanol o fluida en ingles.
+Parte de mi experiencia en infraestructura fue para clientes presentados por Infratech y DAR Soluciones. Trabajé directamente con sus responsables dentro del engagement del equipo. Esa experiencia incluye una migración CentOS con restricciones, recuperación en Debian y Windows, migración de correo y recuperación de firewall, y mi parte asignada dentro de una migración realizada por un equipo.
 
+## Cómo trabajamos
+
+1. Me contás el stack, el síntoma o el objetivo de despliegue y el resultado que necesitás.
+2. Identifico el alcance útil más pequeño y las comprobaciones necesarias.
+3. Completo el trabajo acordado y dejo hallazgos, verificación y notas de entrega claras.
+
+**¿Querés acotar el problema?** [Contame qué está fallando o qué necesitás desplegar mediante mi perfil de Upwork](https://www.upwork.com/freelancers/~016bb2fdeef1cb2886). No envíes contraseñas, claves privadas ni secretos.
